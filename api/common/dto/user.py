@@ -4,22 +4,16 @@ from pydantic import BaseModel
 
 class UserCreate(BaseModel):
 
-    telegram_id: int
-    username: str
+    telegram_id: int = 0
+    username: str = ""
     description: Optional[str] = ""
-    badges: Optional[Dict[str, Any]] = {}
-    phone_number: int
-    mode: int = 0
-    announcements: Optional[Dict[str, Any]] = {}
-    created_at: int
-    updated_at: Optional[int] = 0
+    phone_number: int = 0
 
 
 class UserUpdate(BaseModel):
 
-    username: str
+    username: Optional[str] = ""
     description: Optional[str] = ""
     badges: Optional[Dict[str, Any]] = {}
-    phone_number: int
-    mode: int = 0
-    updated_at: Optional[int] = 0
+    phone_number: Optional[int] = 0
+    mode: Optional[int] = 0

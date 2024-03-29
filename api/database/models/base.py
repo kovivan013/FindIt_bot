@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
+from pydantic import BaseModel
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase
@@ -22,3 +23,6 @@ class Base(DeclarativeBase):
         return {
             attr: value for attr, value in self.__dict__.items() if not attr.startswith('_')
         }
+
+
+

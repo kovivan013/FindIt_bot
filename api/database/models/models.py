@@ -1,5 +1,11 @@
 from typing import Optional
 from .base import Base
+from pydantic import BaseModel
+
+from schemas.schemas import (
+    BaseUser,
+    BaseAnnouncement
+)
 from sqlalchemy.orm import (
     mapped_column,
     Mapped
@@ -53,6 +59,11 @@ class Users(Base):
         default={}
     )
 
+    def as_model(self):
+        return BaseUser().model_validate(
+            self.as_dict()
+        )
+
 
 class Announcements(Base):
 
@@ -75,3 +86,8 @@ class Announcements(Base):
         JSON,
         default={}
     )
+
+    def as_model(self):
+        return BaseAnnouncement().model_validate(
+            self.as_dict()
+        )

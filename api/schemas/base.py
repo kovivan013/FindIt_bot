@@ -18,12 +18,9 @@ class DataStructure(BaseModel):
         return self.status
 
     @_status.setter
-    def _status(
-            self,
-            _value
-    ) -> None:
-        self.status = _value
-        if _value in range(200, 300):
+    def _status(self, value: int) -> None:
+        self.status = value
+        if value in range(200, 300):
             self.success = True
 
     @_success.getter

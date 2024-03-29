@@ -1,7 +1,7 @@
 import uvicorn
 
 from fastapi import FastAPI
-from endpoints.routers import api_router
+from network.routers import api_router
 from database.core import core
 from config import settings
 
