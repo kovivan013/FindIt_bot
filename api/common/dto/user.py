@@ -14,6 +14,4 @@ class UserUpdate(BaseModel):
 
     username: Optional[str] = ""
     description: Optional[str] = ""
-    badges: Optional[Dict[str, Any]] = {}
     phone_number: Optional[int] = 0
-    mode: Optional[int] = 0

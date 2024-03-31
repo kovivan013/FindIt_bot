@@ -47,16 +47,17 @@ class Users(Base):
     mode: Mapped[SmallInteger] = mapped_column(
         SmallInteger
     )
-    announcements: Mapped[JSON] = mapped_column(
-        JSON,
-        default={}
-    )
     created_at: Mapped[BigInteger] = mapped_column(
-        BigInteger
+        BigInteger,
+        default=0
     )
     notifications: Mapped[JSON] = mapped_column(
         JSON,
         default={}
+    )
+    status: Mapped[SmallInteger] = mapped_column(
+        SmallInteger,
+        default=0
     )
 
     def as_model(self):
@@ -67,7 +68,7 @@ class Users(Base):
 
 class Announcements(Base):
 
-    announcements_id: Mapped[String] = mapped_column(
+    announcement_id: Mapped[String] = mapped_column(
         String,
         primary_key=True,
         index=True

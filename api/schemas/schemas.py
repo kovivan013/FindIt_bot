@@ -10,9 +10,34 @@ class BaseUser(BaseModel):
     badges: Dict[str, Any] = {}
     phone_number: int = 0
     mode: int = 0
-    announcements: Dict[str, Any] = {}
     created_at: int = 0
     notifications: Dict[str, Any] = {}
+    status: int = 0
+
+
+class AnnouncementLocation(BaseModel):
+
+    latitude: float = 0.0
+    longitude: float = 0.0
+    place_name: str = ""
+    place_type: str = ""
+
+
+class AnnouncementSecrets(BaseModel):
+
+    question: str = ""
+    answer: str = ""
+
+
+class AnnouncementDetails(BaseModel):
+
+    title: str = ""
+    description: str = ""
+    address: Dict[str, Any] = {}
+    timestamp: int = 0
+    tags: list = []
+    secrets: AnnouncementSecrets = AnnouncementSecrets()
+    location: AnnouncementLocation = AnnouncementLocation()
 
 
 class BaseAnnouncement(BaseModel):
@@ -21,4 +46,4 @@ class BaseAnnouncement(BaseModel):
     owner_id: int = 0
     mode: int = 0
     status: int = 0
-    details: Dict[str, Any] = {}
+    details: AnnouncementDetails = AnnouncementDetails()

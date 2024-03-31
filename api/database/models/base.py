@@ -24,5 +24,17 @@ class Base(DeclarativeBase):
             attr: value for attr, value in self.__dict__.items() if not attr.startswith('_')
         }
 
+    def validate(self, obj: dict):
+        data = self.as_dict()
+        for i, v in obj.items():
+            if i in data:
+                setattr(
+                    self,
+                    i,
+                    v
+                )
+
+        return self
+
 
 

@@ -2,6 +2,7 @@ import uvicorn
 
 from fastapi import FastAPI
 from network.routers import api_router
+from services.errors_reporter import Reporter
 from database.core import core
 from config import settings
 
@@ -16,6 +17,8 @@ core.create_sa_engine()
 core.create_sa_session_factory()
 
 app = get_application()
+
+Reporter.start(app)
 
 if __name__ == "__main__":
     uvicorn.run(
