@@ -1,6 +1,13 @@
 from starlette import status
+from schemas.base import DataStructure
 from fastapi import HTTPException
+from fastapi import exceptions
 
+
+UnautorizedException = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Unautorized"
+)
 
 ItemExists = HTTPException(
     status_code=status.HTTP_409_CONFLICT,

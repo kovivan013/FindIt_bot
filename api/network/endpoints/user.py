@@ -39,6 +39,7 @@ from services import exceptions
 from services.errors_reporter import Reporter
 from schemas.base import DataStructure
 from utils import utils
+from utils.utils import OAuth2
 
 
 user_router = APIRouter()
@@ -150,10 +151,16 @@ async def update_user(
 async def add_annoucement(
         telegram_id: int,
         parameters: AddAnnouncement,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        telegram_id
+    )
+
     result = DataStructure()
     user = await session.get(
         Users,

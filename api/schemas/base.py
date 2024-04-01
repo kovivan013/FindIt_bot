@@ -1,6 +1,8 @@
 from abc import ABC
 from typing import Any, Optional, Union
+from datetime import datetime
 from pydantic import BaseModel
+
 
 class DataStructure(BaseModel):
 
@@ -26,3 +28,9 @@ class DataStructure(BaseModel):
     @_success.getter
     def _success(self) -> bool:
         return self.status in range(200, 300) and self.success
+
+
+class OAuthStructure(BaseModel):
+
+    id_: int = 0
+    expire_at: int = 0
