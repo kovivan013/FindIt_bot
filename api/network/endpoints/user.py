@@ -48,10 +48,16 @@ user_router = APIRouter()
 @user_router.post(Endpoints.CREATE_USER)
 async def create_user(
         parameters: UserCreate,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    # await OAuth2._check_token(
+    #     request,
+    #     UserCreate.telegram_id
+    # )
+
     result = DataStructure()
     data_scheme = BaseUser().model_validate(
         parameters.model_dump()
@@ -85,10 +91,16 @@ async def create_user(
 @user_router.get(Endpoints.GET_USER)
 async def get_user(
         telegram_id: int,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session
+    )
+
     result = DataStructure()
     user = await session.get(
         Users,
@@ -117,10 +129,16 @@ async def get_user(
 async def update_user(
         telegram_id: int,
         parameters: UserUpdate,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    # await OAuth2._check_token(
+    #     request,
+    #     telegram_id
+    # )
+
     result = DataStructure()
     user = await session.get(
         Users,
@@ -156,10 +174,10 @@ async def add_annoucement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    await OAuth2._check_token(
-        request,
-        telegram_id
-    )
+    # await OAuth2._check_token(
+    #     request,
+    #     telegram_id
+    # )
 
     result = DataStructure()
     user = await session.get(

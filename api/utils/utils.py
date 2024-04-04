@@ -4,11 +4,20 @@ import jwt
 from datetime import datetime
 from uuid import uuid4
 from starlette import status
-from fastapi import Request
+from fastapi import (
+    Request,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
 from typing import Union
 
 from config import settings
+# from network.endpoints.admin import check_admin
+from database.models.models import (
+    Admins,
+    Users,
+    Announcements
+)
 from services.errors_reporter import Reporter
 from services import exceptions
 from schemas.base import (
@@ -43,30 +52,76 @@ class OAuth2:
     __SECRET_KEY: str = settings.SECRET_KEY
 
     @classmethod
-    async def _check_token(
+    async def __get_token(
             cls,
-            request: Request,
-            id_: int
-    ) -> Union[DataStructure, None]:
+            request: Request
+    ) -> Union[OAuthStructure]:
         token = request.headers.get(
             "Authorization",
             None
         )
 
-        try:
-            decrypted_data = OAuthStructure().model_validate(
-                jwt.decode(
-                    token,
-                    cls.__SECRET_KEY,
-                    algorithms=['HS256']
+        if token is not None:
+            try:
+                result = OAuthStructure().model_validate(
+                    jwt.decode(
+                        token,
+                        cls.__SECRET_KEY,
+                        algorithms=['HS256']
+                    )
                 )
-            )
 
-            if decrypted_data.id_ != id_:
-                raise
+                return result
+            except:
+                return False
 
-        except:
-            raise exceptions.UnautorizedException
+    @classmethod
+    async def _check_admin(
+            cls,
+            request: Request,
+            session: AsyncSession,
+    ) -> Union[DataStructure]:
+        result = DataStructure()
+        token = await cls.__get_token(request)
+        admin = await session.get(
+            Admins,
+            token.id_
+        )
+
+        if not admin:
+            return await Reporter(
+                exception=exceptions.NoAccess,
+                message="Admin permissions required"
+            )._report()
+
+        await session.close()
+
+        result.data = admin.as_dict()
+        result._status = status.HTTP_200_OK
+
+        return result
+
+    @classmethod
+    async def _check_token(
+            cls,
+            request: Request,
+            session: AsyncSession,
+            admin_permissions: bool = False
+    ) -> Union[DataStructure, True]:
+        token = await cls.__get_token(request)
+
+        if token:
+            if admin_permissions:
+                is_admin = await cls._check_admin(
+                    request,
+                    session
+                )
+
+                if not is_admin.success:
+                    raise exceptions.UnautorizedException
+            return True
+        raise exceptions.UnautorizedException
+
 
 
 # import jwt

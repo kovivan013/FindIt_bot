@@ -92,3 +92,16 @@ class Announcements(Base):
         return BaseAnnouncement().model_validate(
             self.as_dict()
         )
+
+
+class Admins(Base):
+
+    telegram_id: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        index=True
+    )
+    permissions: Mapped[JSON] = mapped_column(
+        JSON,
+        default={}
+    )

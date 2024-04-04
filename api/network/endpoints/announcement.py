@@ -47,10 +47,16 @@ announcement_router = APIRouter()
 @announcement_router.get(Endpoints.GET_ANNOUNCEMENT)
 async def get_announcement(
         announcement_id: str,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    # await OAuth2._check_token(
+    #     request,
+    #     telegram_id
+    # )
+
     result = DataStructure()
     announcement = await session.get(
         Announcements,
@@ -75,9 +81,16 @@ async def get_announcement(
 async def delete_announcement(
         telegram_id: int,
         announcement_id: str,
+        request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
-)) -> Union[DataStructure]:
+        )
+) -> Union[DataStructure]:
+    # await OAuth2._check_token(
+    #     request,
+    #     telegram_id
+    # )
+
     result = DataStructure()
 
 

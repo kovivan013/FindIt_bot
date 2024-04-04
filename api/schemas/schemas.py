@@ -47,3 +47,14 @@ class BaseAnnouncement(BaseModel):
     mode: int = 0
     status: int = 0
     details: AnnouncementDetails = AnnouncementDetails()
+
+
+class AdminPermissions(BaseModel):
+
+    permissions: list = []
+
+
+class BaseAdmin(BaseModel):
+
+    telegram_id: int = 0
+    permissions: AdminPermissions = AdminPermissions
