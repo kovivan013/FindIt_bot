@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Any
+from .classes import AnnouncementStatus
 from pydantic import BaseModel
 
 
@@ -40,13 +41,33 @@ class AnnouncementDetails(BaseModel):
     location: AnnouncementLocation = AnnouncementLocation()
 
 
-class BaseAnnouncement(BaseModel):
+class AnnouncementsResponse(BaseModel):
+
+    query: str = ""
+    page: int = 0
+
+
+class AnnouncementsOrder(BaseModel):
+
+    active: int = 0
+    completed: int = 0
+    pending: int = 0
+
+
+class UserAnnouncementsResponse(BaseModel):
+
+    pages: int = 0
+    page: int = 0
+    status: int = AnnouncementStatus.ACTIVE
+    order: AnnouncementsOrder = AnnouncementsOrder()
+
+
+class BaseAnnouncement(AnnouncementDetails):
 
     announcement_id: str = ""
     owner_id: int = 0
     mode: int = 0
     status: int = 0
-    details: AnnouncementDetails = AnnouncementDetails()
 
 
 class AdminPermissions(BaseModel):
@@ -58,3 +79,4 @@ class BaseAdmin(BaseModel):
 
     telegram_id: int = 0
     permissions: AdminPermissions = AdminPermissions
+

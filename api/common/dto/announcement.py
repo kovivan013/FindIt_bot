@@ -3,7 +3,6 @@ from schemas.schemas import AnnouncementDetails
 from pydantic import BaseModel
 
 
-class AddAnnouncement(BaseModel):
+class AddAnnouncement(AnnouncementDetails):
 
     mode: int = 0
-    details: AnnouncementDetails = AnnouncementDetails()

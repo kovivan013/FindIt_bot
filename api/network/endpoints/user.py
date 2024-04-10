@@ -3,11 +3,12 @@ from fastapi import (
     Depends,
     Response,
     Request,
-    Query
+    Query,
 )
+from typing_extensions import Annotated
 from datetime import datetime
 from typing import Union, AsyncIterable
-from starlette import status
+from starlette import status as HTTPStatus
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     AsyncSession
@@ -29,11 +30,14 @@ from common.dto.announcement import (
 )
 from schemas.schemas import (
     BaseUser,
-    BaseAnnouncement
+    BaseAnnouncement,
+    UserAnnouncementsResponse
 )
 from schemas.classes import (
-    Endpoints,
-    Status
+    UserEndpoints,
+    AnnouncementStatus,
+    AnnouncementSort,
+    UserMode
 )
 from services import exceptions
 from services.errors_reporter import Reporter
@@ -45,7 +49,7 @@ from utils.utils import OAuth2
 user_router = APIRouter()
 
 
-@user_router.post(Endpoints.CREATE_USER)
+@user_router.post(UserEndpoints.CREATE_USER)
 async def create_user(
         parameters: UserCreate,
         request: Request,
@@ -55,7 +59,7 @@ async def create_user(
 ) -> Union[DataStructure]:
     # await OAuth2._check_token(
     #     request,
-    #     UserCreate.telegram_id
+    #     session
     # )
 
     result = DataStructure()
@@ -83,12 +87,12 @@ async def create_user(
     await session.close()
 
     result.data = data_scheme.model_dump()
-    result._status = status.HTTP_201_CREATED
+    result._status = HTTPStatus.HTTP_201_CREATED
 
     return result
 
 
-@user_router.get(Endpoints.GET_USER)
+@user_router.get(UserEndpoints.GET_USER)
 async def get_user(
         telegram_id: int,
         request: Request,
@@ -96,10 +100,10 @@ async def get_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    await OAuth2._check_token(
-        request,
-        session
-    )
+    # await OAuth2._check_token(
+    #     request,
+    #     session
+    # )
 
     result = DataStructure()
     user = await session.get(
@@ -120,12 +124,12 @@ async def get_user(
     await session.close()
 
     result.data = data_scheme.model_dump()
-    result._status = status.HTTP_200_OK
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
 
-@user_router.patch(Endpoints.UPDATE_USER)
+@user_router.patch(UserEndpoints.UPDATE_USER)
 async def update_user(
         telegram_id: int,
         parameters: UserUpdate,
@@ -136,7 +140,7 @@ async def update_user(
 ) -> Union[DataStructure]:
     # await OAuth2._check_token(
     #     request,
-    #     telegram_id
+    #     session
     # )
 
     result = DataStructure()
@@ -160,12 +164,12 @@ async def update_user(
     await session.close()
 
     result.data = user.as_dict()
-    result._status = status.HTTP_200_OK
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
 
-@user_router.post(Endpoints.ADD_ANNOUNCEMENT)
+@user_router.post(UserEndpoints.ADD_ANNOUNCEMENT)
 async def add_annoucement(
         telegram_id: int,
         parameters: AddAnnouncement,
@@ -176,7 +180,7 @@ async def add_annoucement(
 ) -> Union[DataStructure]:
     # await OAuth2._check_token(
     #     request,
-    #     telegram_id
+    #     session
     # )
 
     result = DataStructure()
@@ -196,7 +200,7 @@ async def add_annoucement(
     )
     data_scheme.owner_id = telegram_id
     data_scheme.announcement_id = utils._uuid()
-    data_scheme.status = Status.PENDING
+    data_scheme.status = AnnouncementStatus.PENDING
 
     session.add(
         Announcements(
@@ -207,6 +211,84 @@ async def add_annoucement(
     await session.close()
 
     result.data = data_scheme.model_dump()
-    result._status = status.HTTP_201_CREATED
+    result._status = HTTPStatus.HTTP_201_CREATED
+
+    return result
+
+
+@user_router.get(UserEndpoints.GET_USER_ANNOUNCEMENTS)
+async def get_user_announcements(
+        request: Request,
+        telegram_id: int,
+        mode: int = 0,
+        status: int = 0,
+        limit: int = 1,
+        page: int = 0,
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    if status not in AnnouncementStatus.__dict__.values() or mode not in UserMode.__dict__.values() or limit < 1:
+        return await Reporter(
+            exception=exceptions.ValidationException
+        )._report()
+
+    # await OAuth2._check_token(
+    #     request,
+    #     session
+    # )
+
+    result = DataStructure()
+    document = UserAnnouncementsResponse(
+        status=status,
+        page=page
+    )
+    query_result = await session.execute(
+        select(
+            Announcements
+        ).filter(
+            Announcements.owner_id == telegram_id
+        ).filter(
+            Announcements.mode == mode
+        ).order_by(
+            Announcements.timestamp.desc()
+        )
+    )
+
+    announcements: dict = {}
+    offset: int = page * limit
+    pages: int = 0
+
+    for i, announcement in enumerate(query_result.scalars().all()):
+
+        match announcement.status:
+            case 0:
+                document.order.active += 1
+            case 1:
+                document.order.completed += 1
+            case 2:
+                document.order.pending += 1
+
+        if not i % limit:
+            pages += 1
+
+        if i in range(
+                offset,
+                offset + limit
+        ):
+            if announcement.status == status:
+                announcements.update(
+                    {
+                        announcement.announcement_id: announcement.as_dict()
+                    }
+                )
+
+    result.data.update(
+        {
+            "announcements": announcements,
+            "document": document
+        }
+    )
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result

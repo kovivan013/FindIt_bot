@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from schemas.schemas import (
     BaseUser,
-    BaseAnnouncement
+    BaseAnnouncement,
+    BaseAdmin
 )
 from sqlalchemy.orm import (
     mapped_column,
@@ -17,7 +18,8 @@ from sqlalchemy import (
     BigInteger,
     JSON,
     SmallInteger,
-    DateTime
+    DateTime,
+    ARRAY
 )
 
 
@@ -83,7 +85,31 @@ class Announcements(Base):
         SmallInteger,
         default=0
     )
-    details: Mapped[JSON] = mapped_column(
+    title: Mapped[String] = mapped_column(
+        String,
+        default=""
+    )
+    description: Mapped[String] = mapped_column(
+        String,
+        default=""
+    )
+    location: Mapped[JSON] = mapped_column(
+        JSON,
+        default={}
+    )
+    address: Mapped[JSON] = mapped_column(
+        JSON,
+        default={}
+    )
+    timestamp: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        default=0
+    )
+    tags: Mapped[ARRAY] = mapped_column(
+        ARRAY(String),
+        default=[]
+    )
+    secrets: Mapped[JSON] = mapped_column(
         JSON,
         default={}
     )
@@ -105,3 +131,8 @@ class Admins(Base):
         JSON,
         default={}
     )
+
+    def as_model(self):
+        return BaseAdmin().model_validate(
+            self.as_dict()
+        )

@@ -73,7 +73,8 @@ class OAuth2:
 
                 return result
             except:
-                return False
+                raise exceptions.UnautorizedException
+        raise exceptions.UnautorizedException
 
     @classmethod
     async def _check_admin(
@@ -83,6 +84,7 @@ class OAuth2:
     ) -> Union[DataStructure]:
         result = DataStructure()
         token = await cls.__get_token(request)
+
         admin = await session.get(
             Admins,
             token.id_
@@ -110,17 +112,28 @@ class OAuth2:
     ) -> Union[DataStructure, True]:
         token = await cls.__get_token(request)
 
-        if token:
-            if admin_permissions:
-                is_admin = await cls._check_admin(
-                    request,
-                    session
-                )
+        if admin_permissions:
+            is_admin = await cls._check_admin(
+                request,
+                session
+            )
 
-                if not is_admin.success:
-                    raise exceptions.UnautorizedException
+            if not is_admin.success:
+                raise exceptions.UnautorizedException
+        return True
+
+    @classmethod
+    async def _check_ownership(
+            cls,
+            telegram_id: int,
+            request: Request
+    ) -> Union[DataStructure, True]:
+        token = await cls.__get_token(request)
+
+        if token.id_ == telegram_id:
             return True
-        raise exceptions.UnautorizedException
+
+        raise exceptions.NoAccess
 
 
 

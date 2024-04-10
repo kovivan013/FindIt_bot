@@ -49,14 +49,18 @@ class Reporter:
             status.HTTP_401_UNAUTHORIZED,
             cls._exception
         )
+        app.add_exception_handler(
+            status.HTTP_403_FORBIDDEN,
+            cls._exception
+        )
 
-        @app.exception_handler(RequestValidationError)
-        async def wrapper(
-                *args: Any,
-                **kwargs: Any
-        ) -> Union[JSONResponse]:
-            result = DataStructure()
-            result._status = status.HTTP_422_UNPROCESSABLE_ENTITY
-            result.message = "Validation error"
-            return JSONResponse(status_code=result.status,
-                                content=result.model_dump())
+        # @app.exception_handler(RequestValidationError)
+        # async def wrapper(
+        #         *args: Any,
+        #         **kwargs: Any
+        # ) -> Union[JSONResponse]:
+        #     result = DataStructure()
+        #     result._status = status.HTTP_422_UNPROCESSABLE_ENTITY
+        #     result.message = "Validation error"
+        #     return JSONResponse(status_code=result.status,
+        #                         content=result.model_dump())
