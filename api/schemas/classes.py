@@ -1,4 +1,5 @@
 from enum import Enum
+from pydantic import BaseModel, Field
 
 class Endpoints:
 
@@ -35,6 +36,7 @@ class AnnouncementEndpoints:
 class AdminEndpoints:
 
     ADD_ADMIN: str = "/{telegram_id}/add_admin"
+    REMOVE_ADMIN: str = "/{telegram_id}/remove_admin"
     BAN_USER: str = "/{telegram_id}/ban_user"
     ACCEPT_ANNOUNCEMENT: str = "/{announcement_id}/accept_announcement"
     DECLINE_ANNOUNCEMENT: str = "/{announcement_id}/decline_announcement"
@@ -43,10 +45,15 @@ class AdminEndpoints:
 
 class AdminPermissions:
 
+    SUPER_ADMIN: bool = False
+    MANAGE_PERMISSIONS: bool = False
     MANAGE_ANNOUNCEMENTS: bool = False
-    BAN_USERS: bool = False
     DELETE_ANNOUNCEMENTS: bool = False
-    ADD_ADMINS: bool = False
+    BAN_USERS: bool = False
+
+    def __getattribute__(self, item):
+        return item
+
 
 class AnnouncementStatus:
 
@@ -73,6 +80,9 @@ class AnnouncementSort(Enum):
     @_value.getter
     def _value(self):
         return self.value == self.latest.value
+
+
+ADMIN_PERMISSIONS = AdminPermissions()
 
 
 

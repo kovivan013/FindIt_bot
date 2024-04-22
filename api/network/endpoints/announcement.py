@@ -38,7 +38,7 @@ from schemas.schemas import (
 from schemas.classes import (
     AnnouncementEndpoints,
     AnnouncementStatus,
-    AnnouncementSort
+    AnnouncementSort,
 )
 from services import exceptions
 from services.errors_reporter import Reporter
@@ -58,10 +58,10 @@ async def get_announcement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     telegram_id
-    # )
+    await OAuth2._check_token(
+        request,
+        session
+    )
 
     result = DataStructure()
     announcement = await session.get(

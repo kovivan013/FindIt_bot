@@ -22,11 +22,9 @@ class Reporter:
         self.message = message or exception.detail
 
     async def _report(self) -> Union[DataStructure]:
-        result = DataStructure().model_validate(
-            vars(self)
-        )
-        result._status = self.status
-        return result
+        if self.message:
+            self.exception.detail = self.message
+        raise self.exception
 
     @staticmethod
     def _exception(
@@ -36,8 +34,10 @@ class Reporter:
         result = DataStructure()
         result._status = exception.status_code
         result.message = exception.detail
-        return JSONResponse(status_code=result.status,
-                            content=result.model_dump())
+        return JSONResponse(
+            status_code=result.status,
+            content=result.model_dump()
+        )
 
     @classmethod
     def start(
@@ -45,22 +45,19 @@ class Reporter:
             app: FastAPI
     ) -> None:
 
-        app.add_exception_handler(
-            status.HTTP_401_UNAUTHORIZED,
-            cls._exception
-        )
-        app.add_exception_handler(
-            status.HTTP_403_FORBIDDEN,
-            cls._exception
-        )
+        for code in range(100, 512):
+            app.add_exception_handler(
+                code,
+                cls._exception
+            )
 
-        # @app.exception_handler(RequestValidationError)
-        # async def wrapper(
-        #         *args: Any,
-        #         **kwargs: Any
-        # ) -> Union[JSONResponse]:
-        #     result = DataStructure()
-        #     result._status = status.HTTP_422_UNPROCESSABLE_ENTITY
-        #     result.message = "Validation error"
-        #     return JSONResponse(status_code=result.status,
-        #                         content=result.model_dump())
+        @app.exception_handler(RequestValidationError)
+        async def wrapper(
+                *args: Any,
+                **kwargs: Any
+        ) -> Union[JSONResponse]:
+            result = DataStructure()
+            result._status = status.HTTP_422_UNPROCESSABLE_ENTITY
+            result.message = "Validation error"
+            return JSONResponse(status_code=result.status,
+                                content=result.model_dump())

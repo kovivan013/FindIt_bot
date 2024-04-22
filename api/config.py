@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     SERVER_HOST: str = "127.0.0.1"
     SERVER_PORT: int = 8000
+    OWNERS: list = [1125858430]
     SECRET_KEY: str
 
     @property

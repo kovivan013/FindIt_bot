@@ -215,23 +215,33 @@ async def add_annoucement(
 
     return result
 
-
 @user_router.get(UserEndpoints.GET_USER_ANNOUNCEMENTS)
 async def get_user_announcements(
         request: Request,
         telegram_id: int,
-        mode: int = 0,
-        status: int = 0,
-        limit: int = 1,
+        mode: int = Query(
+            0,
+            gt=-1,
+            lt=2
+        ),
+        status: int = Query(
+            0,
+            gt=-1,
+            lt=3
+        ),
+        limit: int = Query(
+            1,
+            gt=0
+        ),
         page: int = 0,
         session: AsyncSession = Depends(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    if status not in AnnouncementStatus.__dict__.values() or mode not in UserMode.__dict__.values() or limit < 1:
-        return await Reporter(
-            exception=exceptions.ValidationException
-        )._report()
+    # if status not in AnnouncementStatus.__dict__.values() or mode not in UserMode.__dict__.values() or limit < 1:
+    #     return await Reporter(
+    #         exception=exceptions.ValidationException
+    #     )._report()
 
     # await OAuth2._check_token(
     #     request,

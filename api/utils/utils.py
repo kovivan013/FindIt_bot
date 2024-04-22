@@ -24,6 +24,7 @@ from schemas.base import (
     DataStructure,
     OAuthStructure
 )
+from schemas.classes import ADMIN_PERMISSIONS
 
 
 def timestamp() -> int:
@@ -56,6 +57,11 @@ class OAuth2:
             cls,
             request: Request
     ) -> Union[OAuthStructure]:
+        """
+        Encrypt secret JWT token. On success returns decrypted token structure.
+        :param request:
+        :return:
+        """
         token = request.headers.get(
             "Authorization",
             None
@@ -79,9 +85,17 @@ class OAuth2:
     @classmethod
     async def _check_admin(
             cls,
+            permissions: list,
             request: Request,
             session: AsyncSession,
     ) -> Union[DataStructure]:
+        """
+        Check is the user has admin permissions.
+        :param permissions:
+        :param request:
+        :param session:
+        :return:
+        """
         result = DataStructure()
         token = await cls.__get_token(request)
 
@@ -96,6 +110,17 @@ class OAuth2:
                 message="Admin permissions required"
             )._report()
 
+        for permission in permissions:
+            if not admin.permissions.get(
+                permission
+            ) and not admin.permissions.get(
+                ADMIN_PERMISSIONS.SUPER_ADMIN
+            ) and admin.telegram_id not in settings.OWNERS:
+                return await Reporter(
+                    exception=exceptions.NoAccess,
+                    message="Not enough permissions for this action"
+                )._report()
+
         await session.close()
 
         result.data = admin.as_dict()
@@ -108,19 +133,85 @@ class OAuth2:
             cls,
             request: Request,
             session: AsyncSession,
-            admin_permissions: bool = False
-    ) -> Union[DataStructure, True]:
+            admin_permissions: list = []
+    ) -> Union[DataStructure, OAuthStructure]:
+        """
+        Verify JWT token and required admin permissions to continue
+        :param request:
+        :param session:
+        :param admin_permissions:
+        :return:
+        """
         token = await cls.__get_token(request)
 
         if admin_permissions:
             is_admin = await cls._check_admin(
+                admin_permissions,
                 request,
                 session
             )
 
             if not is_admin.success:
                 raise exceptions.UnautorizedException
-        return True
+        return token
+
+    @classmethod
+    async def _check_new_admin_permissions(
+            cls,
+            permissions: list,
+            request: Request,
+            session: AsyncSession
+    ) -> Union[DataStructure, True]:
+        """
+        Checks the admin has enough permissions to grant it towards new admin
+        :param permissions: New admin permissions
+        :param request:
+        :param session:
+        :return:
+        """
+        result = DataStructure()
+        token = await cls.__get_token(request)
+
+        admin = await session.get(
+            Admins,
+            token.id_
+        )
+
+        if not admin:
+            return await Reporter(
+                exception=exceptions.NoAccess,
+                message="Admin permissions required"
+            )._report()
+
+        if admin.telegram_id in settings.OWNERS:
+            permissions = []
+
+        if ADMIN_PERMISSIONS.SUPER_ADMIN in permissions:
+            if admin.telegram_id not in settings.OWNERS:
+                return await Reporter(
+                    exception=exceptions.NoAccess,
+                    message="Not enought permissions"
+                )._report()
+            permissions = []
+
+        for permission in permissions:
+            if not admin.permissions.get(
+                permission
+            ) and not admin.permissions.get(
+                ADMIN_PERMISSIONS.SUPER_ADMIN
+            ):
+                print(permission)
+                return await Reporter(
+                    exception=exceptions.NoAccess,
+                    message="Not enough permissions for this action"
+                )._report()
+
+        await session.close()
+
+        result.data = admin.as_dict()
+        result._status = status.HTTP_200_OK
+
+        return result
 
     @classmethod
     async def _check_ownership(
@@ -128,6 +219,12 @@ class OAuth2:
             telegram_id: int,
             request: Request
     ) -> Union[DataStructure, True]:
+        """
+        Verify user is the author of the request
+        :param telegram_id:
+        :param request:
+        :return:
+        """
         token = await cls.__get_token(request)
 
         if token.id_ == telegram_id:

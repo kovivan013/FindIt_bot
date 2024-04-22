@@ -72,11 +72,15 @@ class BaseAnnouncement(AnnouncementDetails):
 
 class AdminPermissions(BaseModel):
 
-    permissions: list = []
+    SUPER_ADMIN: bool = False
+    MANAGE_PERMISSIONS: bool = False
+    MANAGE_ANNOUNCEMENTS: bool = False
+    DELETE_ANNOUNCEMENTS: bool = False
+    BAN_USERS: bool = False
 
 
 class BaseAdmin(BaseModel):
 
     telegram_id: int = 0
-    permissions: AdminPermissions = AdminPermissions
+    permissions: Dict[str, bool] = {}
 
