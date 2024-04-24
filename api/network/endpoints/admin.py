@@ -20,7 +20,8 @@ from database.core import (
 from database.models.models import (
     Users,
     Admins,
-    Announcements
+    Announcements,
+    BannedUsers
 )
 from common.dto.user import (
     UserCreate,
@@ -28,7 +29,8 @@ from common.dto.user import (
 )
 from common.dto.admin import (
     AdminAdd,
-    PermissionsUpdate
+    PermissionsUpdate,
+    UserBan
 )
 from common.dto.announcement import (
     AddAnnouncement
@@ -114,8 +116,8 @@ async def get_admins(
         session,
         require_admin=True
     )
-
     result = DataStructure()
+
     query_result = await session.execute(
         select(
             Admins
@@ -165,8 +167,8 @@ async def get_users(
         session,
         require_admin=True
     )
-
     result = DataStructure()
+
     query_result = await session.execute(
         select(
             Users
@@ -196,6 +198,57 @@ async def get_users(
     return result
 
 
+@admin_router.get(AdminEndpoints.GET_BANNED_USERS)
+async def get_banned_users(
+        request: Request,
+        limit: int = Query(
+            1,
+            gt=0
+        ),
+        page: int = Query(
+            0,
+            gt=-1
+        ),
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session,
+        require_admin=True
+    )
+    result = DataStructure()
+
+    query_result = await session.execute(
+        select(
+            BannedUsers
+        ).order_by(
+            BannedUsers.banned_at.desc()
+        )
+    )
+    banned_users: dict = {}
+    offset: int = page * limit
+
+    for i, banned_user in enumerate(query_result.scalars().all()):
+        if i in range(
+            offset,
+            offset + limit
+        ):
+            banned_users.update(
+                {
+                    banned_user.telegram_id: banned_user.as_dict()
+                }
+            )
+
+    await session.close()
+
+    result.data = banned_users
+    result._status = HTTPStatus.HTTP_200_OK
+
+    return result
+
+
 @admin_router.post(AdminEndpoints.ADD_ADMIN)
 async def add_admin(
         telegram_id: int,
@@ -214,6 +267,17 @@ async def add_admin(
     )
 
     result = DataStructure()
+    banned_user = await session.get(
+        BannedUsers,
+        telegram_id
+    )
+
+    if banned_user:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="You cannot grant admin permissions user that banned"
+        )._report()
+
     user = await session.get(
         Users,
         telegram_id
@@ -224,12 +288,6 @@ async def add_admin(
             exception=exceptions.ItemNotFound,
             message="User not found"
         )._report()
-
-    if user.status == UserStatus.BANNED:
-        return await Reporter(
-            exception=exceptions.NoAccess,
-            message="You cannot grant admin permissions user that banned"
-        )
 
     new_admin = await session.get(
         Admins,
@@ -292,6 +350,7 @@ async def remove_admin(
             ADMIN_PERMISSIONS.SUPER_ADMIN
         ]
     )
+    result = DataStructure()
 
     if token.id_ == telegram_id:
         return await Reporter(
@@ -299,7 +358,6 @@ async def remove_admin(
             message="You cannot delete your own admin profile"
         )._report()
 
-    result = DataStructure()
     admin = await session.get(
         Admins,
         telegram_id
@@ -345,6 +403,7 @@ async def update_permissions(
             ADMIN_PERMISSIONS.SUPER_ADMIN
         ]
     )
+    result = DataStructure()
 
     if token.id_ == telegram_id:
         return await Reporter(
@@ -352,7 +411,6 @@ async def update_permissions(
             message="You cannot manage your own permissions"
         )._report()
 
-    result = DataStructure()
     admin = await session.get(
         Admins,
         telegram_id
@@ -393,6 +451,7 @@ async def update_permissions(
 @admin_router.post(AdminEndpoints.BAN_USER)
 async def ban_user(
         telegram_id: int,
+        parameters: UserBan,
         request: Request,
         session: AsyncSession = Depends(
             core.create_sa_session
@@ -405,6 +464,7 @@ async def ban_user(
             ADMIN_PERMISSIONS.MANAGE_USERS
         ]
     )
+    result = DataStructure()
 
     if token.id_ == telegram_id:
         return await Reporter(
@@ -412,7 +472,23 @@ async def ban_user(
             message="You cannot ban your own account"
         )._report()
 
-    result = DataStructure()
+    if parameters.duration < 60:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="Duration must be > than 60 seconds"
+        )._report()
+
+    banned_user = await session.get(
+        BannedUsers,
+        telegram_id
+    )
+
+    if banned_user:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="The user has already banned"
+        )._report()
+
     user = await session.get(
         Users,
         telegram_id
@@ -422,12 +498,6 @@ async def ban_user(
         return await Reporter(
             exception=exceptions.ItemNotFound,
             message="User not found"
-        )._report()
-
-    if user.status == UserStatus.BANNED:
-        return await Reporter(
-            exception=exceptions.NoAccess,
-            message="The user has already banned"
         )._report()
 
     admin = await session.get(
@@ -452,12 +522,24 @@ async def ban_user(
             admin
         )
 
-    user.status = UserStatus.BANNED
+    data_scheme = BannedUser().model_validate(
+        parameters.model_dump()
+    )
+    data_scheme.telegram_id = telegram_id
+    data_scheme.administrator = token.id_
+    data_scheme.banned_at = utils.timestamp()
+    data_scheme.until = utils.timestamp() + parameters.duration
+
+    session.add(
+        BannedUsers(
+            **data_scheme.model_dump()
+        )
+    )
 
     await session.commit()
     await session.close()
 
-    result.data = user.as_model().model_dump()
+    result.data = data_scheme.model_dump()
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
@@ -478,6 +560,7 @@ async def unban_user(
             ADMIN_PERMISSIONS.MANAGE_USERS
         ]
     )
+    result = DataStructure()
 
     if token.id_ == telegram_id:
         return await Reporter(
@@ -485,19 +568,24 @@ async def unban_user(
             message="You cannot unban your own account"
         )._report()
 
-    result = DataStructure()
-    user = await session.get(
-        Users,
+    banned_user = await session.get(
+        BannedUsers,
         telegram_id
     )
 
-    if not user:
+    if not banned_user:
         return await Reporter(
             exception=exceptions.ItemNotFound,
-            message="User not found"
+            message="User not banned"
         )
 
+    await session.delete(
+        banned_user
+    )
+    await session.commit()
+    await session.close()
 
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
@@ -517,7 +605,6 @@ async def accept_announcement(
             ADMIN_PERMISSIONS.MANAGE_ANNOUNCEMENTS
         ]
     )
-
     result = DataStructure()
 
     return result
@@ -538,7 +625,6 @@ async def decline_announcement(
             ADMIN_PERMISSIONS.MANAGE_ANNOUNCEMENTS
         ]
     )
-
     result = DataStructure()
 
     return result
@@ -559,7 +645,6 @@ async def delete_announcement(
             ADMIN_PERMISSIONS.DELETE_ANNOUNCEMENTS
         ]
     )
-
     result = DataStructure()
 
     return result

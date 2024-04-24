@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 from pydantic import BaseModel
+from string import ascii_uppercase
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase
@@ -9,7 +10,21 @@ class Base(DeclarativeBase):
 
     @declared_attr
     def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+        start_index = -1
+        separated_words = []
+
+        for i, v in enumerate(cls.__name__):
+            if v in ascii_uppercase:
+                if start_index >= 0 and i > start_index:
+                    separated_words.append(
+                        cls.__name__[start_index:i].lower()
+                    )
+                start_index = i
+        separated_words.append(cls.__name__[start_index:].lower())
+
+        return "_".join(
+            separated_words
+        )
 
     def __repr__(self) -> str:
         params = ', '.join(

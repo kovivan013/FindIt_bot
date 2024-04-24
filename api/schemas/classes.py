@@ -30,8 +30,9 @@ class AdminEndpoints:
     ACCEPT_ANNOUNCEMENT: str = "/{announcement_id}/accept_announcement"
     DECLINE_ANNOUNCEMENT: str = "/{announcement_id}/decline_announcement"
     DELETE_ANNOUNCEMENT: str = "/{announcement_id}/delete_announcement"
-    GET_USERS: str = "/users"
-    GET_ADMINS: str = "/admins"
+    GET_USERS: str = "/users/"
+    GET_BANNED_USERS: str = "/banned_users/"
+    GET_ADMINS: str = "/admins/"
 
 
 class AdminPermissions:

@@ -14,6 +14,5 @@ class PermissionsUpdate(BaseModel):
 
 class UserBan(BaseModel):
 
-    administrator: int = 0
     reason: str = ""
     duration: int = 0

@@ -57,12 +57,12 @@ async def create_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     data_scheme = BaseUser().model_validate(
         parameters.model_dump()
     )
@@ -100,12 +100,12 @@ async def get_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     user = await session.get(
         Users,
         telegram_id
@@ -134,12 +134,12 @@ async def update_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     user = await session.get(
         Users,
         telegram_id
@@ -175,12 +175,12 @@ async def add_annoucement(
         )
 ) -> Union[DataStructure]:
     # TODO: check ownership (token.id_ == telegram_id)
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     user = await session.get(
         Users,
         telegram_id
@@ -235,17 +235,12 @@ async def get_user_announcements(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # if status not in AnnouncementStatus.__dict__.values() or mode not in UserMode.__dict__.values() or limit < 1:
-    #     return await Reporter(
-    #         exception=exceptions.ValidationException
-    #     )._report()
-
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     document = UserAnnouncementsResponse(
         status=status,
         page=page

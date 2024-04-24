@@ -56,6 +56,7 @@ class Reporter:
                 *args: Any,
                 **kwargs: Any
         ) -> Union[JSONResponse]:
+            print(args, kwargs)
             result = DataStructure()
             result._status = status.HTTP_422_UNPROCESSABLE_ENTITY
             result.message = "Validation error"

@@ -63,8 +63,8 @@ async def get_announcement(
         request,
         session
     )
-
     result = DataStructure()
+
     announcement = await session.get(
         Announcements,
         announcement_id
@@ -95,8 +95,8 @@ async def delete_announcement(
         request,
         session
     )
-
     result = DataStructure()
+
     announcement = await session.get(
         Announcements,
         announcement_id
@@ -151,12 +151,12 @@ async def get_announcements(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
-
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
+
     document = AnnouncementsResponse(
         query=query,
         page=page

@@ -16,7 +16,7 @@ class BaseUser(BaseModel):
     status: int = 0
 
 
-class BannedUser(BaseUser):
+class BannedUser(BaseModel):
 
     telegram_id: int = 0
     administrator: int = 0
