@@ -10,7 +10,7 @@ from typing import Union, AsyncIterable
 from starlette import status
 from sqlalchemy import (
     select,
-    String
+    String,
 )
 from sqlalchemy.ext.asyncio import (
     AsyncSession
@@ -39,6 +39,7 @@ from schemas.classes import (
     AnnouncementEndpoints,
     AnnouncementStatus,
     AnnouncementSort,
+    UserStatus
 )
 from services import exceptions
 from services.errors_reporter import Reporter
@@ -77,7 +78,7 @@ async def get_announcement(
 
     await session.close()
 
-    result.data = announcement.as_dict()
+    result.data = announcement.as_model().model_dump()
     result._status = status.HTTP_200_OK
 
     return result
@@ -135,8 +136,14 @@ async def get_announcements(
         request: Request,
         query: str,
         location: str = "",
-        limit: int = 1,
-        page: int = 0,
+        limit: int = Query(
+            1,
+            gt=0
+        ),
+        page: int = Query(
+            0,
+            gt=-1
+        ),
         start_from: AnnouncementSort = Query(
             default=AnnouncementSort.latest
         ),
@@ -155,9 +162,21 @@ async def get_announcements(
         page=page
     )
 
+    banned_users = await session.execute(
+        select(
+            Users.telegram_id
+        ).filter(
+            Users.status == UserStatus.BANNED
+        )
+    )
+
     query_result = await session.execute(
         select(
             Announcements
+        ).filter(
+            Announcements.owner_id.notin_(
+                banned_users.scalars().all()
+            )
         ).filter(
             Announcements.status == AnnouncementStatus.ACTIVE
         ).filter(

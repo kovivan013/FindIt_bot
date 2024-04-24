@@ -117,13 +117,9 @@ async def get_user(
             message="User not found"
         )._report()
 
-    data_scheme = BaseUser().model_validate(
-        user.as_dict()
-    )
-
     await session.close()
 
-    result.data = data_scheme.model_dump()
+    result.data = user.as_model().model_dump()
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
@@ -163,7 +159,7 @@ async def update_user(
     await session.commit()
     await session.close()
 
-    result.data = user.as_dict()
+    result.data = user.as_model().model_dump()
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
@@ -178,6 +174,7 @@ async def add_annoucement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
+    # TODO: check ownership (token.id_ == telegram_id)
     # await OAuth2._check_token(
     #     request,
     #     session
@@ -267,7 +264,6 @@ async def get_user_announcements(
 
     announcements: dict = {}
     offset: int = page * limit
-    pages: int = 0
 
     for i, announcement in enumerate(query_result.scalars().all()):
 
@@ -280,7 +276,7 @@ async def get_user_announcements(
                 document.order.pending += 1
 
         if not i % limit:
-            pages += 1
+            document.pages += 1
 
         if i in range(
                 offset,

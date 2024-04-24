@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Optional, Union
 from .base import Base
 from pydantic import BaseModel
 
 from schemas.schemas import (
     BaseUser,
     BaseAnnouncement,
-    BaseAdmin
+    BaseAdmin,
+    BannedUser
 )
 from sqlalchemy.orm import (
     mapped_column,
@@ -62,8 +63,37 @@ class Users(Base):
         default=0
     )
 
-    def as_model(self):
+    def as_model(self) -> Union[BaseUser]:
         return BaseUser().model_validate(
+            self.as_dict()
+        )
+
+
+class BannedUsers(Base):
+
+    telegram_id: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        index=True
+    )
+    administrator: Mapped[BigInteger] = mapped_column(
+        BigInteger
+    )
+    reason: Mapped[String] = mapped_column(
+        String,
+        default=""
+    )
+    banned_at: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        default=0
+    )
+    until: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        default=0
+    )
+
+    def as_model(self) -> Union[BannedUser]:
+        return BannedUser().model_validate(
             self.as_dict()
         )
 
@@ -114,7 +144,7 @@ class Announcements(Base):
         default={}
     )
 
-    def as_model(self):
+    def as_model(self) -> Union[BaseAnnouncement]:
         return BaseAnnouncement().model_validate(
             self.as_dict()
         )
@@ -131,8 +161,12 @@ class Admins(Base):
         JSON,
         default={}
     )
+    added_at: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        default=0
+    )
 
-    def as_model(self):
+    def as_model(self) -> Union[BaseAdmin]:
         return BaseAdmin().model_validate(
             self.as_dict()
         )

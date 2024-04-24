@@ -16,6 +16,15 @@ class BaseUser(BaseModel):
     status: int = 0
 
 
+class BannedUser(BaseUser):
+
+    telegram_id: int = 0
+    administrator: int = 0
+    reason: str = ""
+    banned_at: int = 0
+    until: int = 0
+
+
 class AnnouncementLocation(BaseModel):
 
     latitude: float = 0.0
@@ -83,4 +92,5 @@ class BaseAdmin(BaseModel):
 
     telegram_id: int = 0
     permissions: Dict[str, bool] = {}
+    added_at: int = 0
 

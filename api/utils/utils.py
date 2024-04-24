@@ -133,6 +133,7 @@ class OAuth2:
             cls,
             request: Request,
             session: AsyncSession,
+            require_admin: bool = False,
             admin_permissions: list = []
     ) -> Union[DataStructure, OAuthStructure]:
         """
@@ -144,7 +145,7 @@ class OAuth2:
         """
         token = await cls.__get_token(request)
 
-        if admin_permissions:
+        if admin_permissions or require_admin:
             is_admin = await cls._check_admin(
                 admin_permissions,
                 request,

@@ -45,7 +45,7 @@ class Reporter:
             app: FastAPI
     ) -> None:
 
-        for code in range(100, 512):
+        for code in range(100, 500):
             app.add_exception_handler(
                 code,
                 cls._exception
