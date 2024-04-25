@@ -7,7 +7,7 @@ from fastapi import (
 )
 from datetime import datetime
 from typing import Union, AsyncIterable
-from starlette import status
+from starlette import status as HTTPStatus
 from sqlalchemy import (
     select,
     String,
@@ -79,7 +79,7 @@ async def get_announcement(
     await session.close()
 
     result.data = announcement.as_model().model_dump()
-    result._status = status.HTTP_200_OK
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
@@ -127,7 +127,7 @@ async def delete_announcement(
     await session.close()
 
     result.message = "Announcement successfully deleted"
-    result._status = status.HTTP_200_OK
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
@@ -220,6 +220,6 @@ async def get_announcements(
             "document": document
         }
     )
-    result._status = status.HTTP_200_OK
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result

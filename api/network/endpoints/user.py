@@ -174,12 +174,17 @@ async def add_annoucement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # TODO: check ownership (token.id_ == telegram_id)
-    await OAuth2._check_token(
+    token = await OAuth2._check_token(
         request,
         session
     )
     result = DataStructure()
+
+    if token.id_ != telegram_id:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="Only the account owner have permissions to place the announcements"
+        )
 
     user = await session.get(
         Users,

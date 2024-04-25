@@ -598,7 +598,7 @@ async def accept_announcement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    await OAuth2._check_token(
+    token = await OAuth2._check_token(
         request,
         session,
         admin_permissions=[
@@ -606,6 +606,48 @@ async def accept_announcement(
         ]
     )
     result = DataStructure()
+
+    announcement = await session.get(
+        Announcements,
+        announcement_id
+    )
+
+    if not announcement:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="The announcement not found"
+        )._report()
+
+    if announcement.owner_id == token.id_:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="You cannot accept the placement of your own announcement"
+        )._report()
+
+    if announcement.status != AnnouncementStatus.PENDING:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="The announcement was processed by another administrator"
+        )._report()
+
+    banned_user = await session.get(
+        BannedUsers,
+        announcement.owner_id
+    )
+
+    if banned_user:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="The owner of the announcement is banned, so you cannot accept the announcement placement"
+        )._report()
+
+    announcement.status = AnnouncementStatus.ACTIVE
+
+    await session.commit()
+    await session.close()
+
+    result.message = "The announcement has been successfully placed."
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
@@ -618,7 +660,7 @@ async def decline_announcement(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    await OAuth2._check_token(
+    token = await OAuth2._check_token(
         request,
         session,
         admin_permissions=[
@@ -626,6 +668,39 @@ async def decline_announcement(
         ]
     )
     result = DataStructure()
+
+    announcement = await session.get(
+        Announcements,
+        announcement_id
+    )
+
+    if not announcement:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="The announcement not found"
+        )._report()
+
+    if announcement.owner_id == token.id_:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="You cannot decline the placement of your own announcement"
+        )._report()
+
+    if announcement.status != AnnouncementStatus.PENDING:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="The announcement was processed by another administrator"
+        )._report()
+
+    await session.delete(
+        announcement
+    )
+
+    await session.commit()
+    await session.close()
+
+    result.message = "The announcement placement successfully declined."
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
@@ -646,6 +721,33 @@ async def delete_announcement(
         ]
     )
     result = DataStructure()
+
+    announcement = await session.get(
+        Announcements,
+        announcement_id
+    )
+
+    if not announcement:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="The announcement not found"
+        )._report()
+
+    if announcement.status != AnnouncementStatus.ACTIVE:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="The announcement doesn`t have an active status, so it cannot be deleted"
+        )
+
+    await session.delete(
+        announcement
+    )
+
+    await session.commit()
+    await session.close()
+
+    result.message = "The announcement has been successfully deleted"
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 
