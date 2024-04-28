@@ -1,0 +1,22 @@
+version: '4'
+
+services:
+#  telegram_bot:
+#    container_name: bot
+#    image: telegram_bot
+#    build: ./telegram_bot
+#    env_file:
+#      - ./telegram_bot/.env
+#    restart: unless-stopped
+
+  bot_api:
+    container_name: app_api
+    image: findit_api
+    build: ./api
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    env_file:
+      - ./api/.env
+    ports:
+      - '8000:8000'
+    restart: unless-stopped
+

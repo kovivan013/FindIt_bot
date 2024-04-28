@@ -136,6 +136,16 @@ async def get_announcements(
         request: Request,
         query: str,
         location: str = "",
+        mode: int = Query(
+            0,
+            gt=-1,
+            lt=2
+        ),
+        status: int = Query(
+            0,
+            gt=-1,
+            lt=3
+        ),
         limit: int = Query(
             1,
             gt=0
@@ -178,7 +188,9 @@ async def get_announcements(
                 banned_users.scalars().all()
             )
         ).filter(
-            Announcements.status == AnnouncementStatus.ACTIVE
+            Announcements.mode == mode
+        ).filter(
+            Announcements.status == status
         ).filter(
             Announcements.title.ilike(
                 f"%{query}%"
