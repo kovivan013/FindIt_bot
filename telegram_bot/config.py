@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     )
 
     BOT_TOKEN: str
-    BASE_API_URL: str = "http://bot_api:8000"
+    SECRET_KEY: str
+    BASE_API_URL: str = "http://127.0.0.1:8000"
     HELPERS_CHAT: int = -4186817944
 
 settings = Settings()

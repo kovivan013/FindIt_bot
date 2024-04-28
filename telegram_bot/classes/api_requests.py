@@ -5,42 +5,20 @@ from network.endpoints import (
     AnnouncementEndpoints,
     AdminEndpoints
 )
+from utils import utils
 from pydantic import BaseModel
 from typing import Union
-from schemas.schemas import DataStructure
+from network.request_classes import (
+    GetRequest,
+    PostRequest,
+    PatchRequest,
+    PutRequest,
+    DeleteRequest
+)
+from common.interfaces import DataStructure
+from common.classes import AnnouncementSort
+from common import dtos
 from config import settings
-
-class UserEndpoints:
-
-    GET_USER: str = "/{telegram_id}"
-    CREATE_USER: str = "/create_user"
-    UPDATE_USER: str = "/{telegram_id}"
-    ADD_ANNOUNCEMENT: str = "/{telegram_id}/add_announcement"
-    GET_USER_ANNOUNCEMENTS: str = "/{telegram_id}/announcements"
-    SEND_NOTIFICATION: str = "/{telegram_id}/send_notification"
-
-
-class AnnouncementEndpoints:
-
-    GET_ANNOUNCEMENT: str = "/{announcement_id}"
-    DELETE_ANNOUNCEMENT: str = "/{announcement_id}"
-    GET_ANNOUNCEMENTS: str = "/"
-
-
-class AdminEndpoints:
-
-    GET_ADMIN: str = "/{telegram_id}"
-    ADD_ADMIN: str = "/{telegram_id}/add_admin"
-    REMOVE_ADMIN: str = "/{telegram_id}/remove_admin"
-    UPDATE_PERMISSIONS: str = "/{telegram_id}/update_permissions"
-    BAN_USER: str = "/{telegram_id}/ban_user"
-    UNBAN_USER: str = "/{telegram_id}/unban_user"
-    ACCEPT_ANNOUNCEMENT: str = "/{announcement_id}/accept_announcement"
-    DECLINE_ANNOUNCEMENT: str = "/{announcement_id}/decline_announcement"
-    DELETE_ANNOUNCEMENT: str = "/{announcement_id}/delete_announcement"
-    GET_USERS: str = "/users/"
-    GET_BANNED_USERS: str = "/banned_users/"
-    GET_ADMINS: str = "/admins/"
 
 
 class DTOStub(BaseModel):
@@ -55,34 +33,72 @@ class API:
     @classmethod
     async def _get_request(
             cls,
+            auth: int,
+            *,
             endpoint: str,
             data: dict = {}
     ):
-        pass
+        url: str = cls.__BASE_API_URL + endpoint
+        return await GetRequest(
+            url=url,
+            data=data
+        ).send_request(auth)
 
     @classmethod
     async def _post_request(
             cls,
+            auth: int,
+            *,
             endpoint: str,
             data: dict = {}
     ):
-        pass
+        url: str = cls.__BASE_API_URL + endpoint
+        return await PostRequest(
+            url=url,
+            data=data
+        ).send_request(auth)
 
     @classmethod
     async def _patch_request(
             cls,
+            auth: int,
+            *,
             endpoint: str,
             data: dict = {}
     ):
-        pass
+        url: str = cls.__BASE_API_URL + endpoint
+        return await PatchRequest(
+            url=url,
+            data=data
+        ).send_request(auth)
+
+    @classmethod
+    async def _put_request(
+            cls,
+            auth: int,
+            *,
+            endpoint: str,
+            data: dict = {}
+    ):
+        url: str = cls.__BASE_API_URL + endpoint
+        return await PutRequest(
+            url=url,
+            data=data
+        ).send_request(auth)
 
     @classmethod
     async def _delete_request(
             cls,
+            auth: int,
+            *,
             endpoint: str,
             data: dict = {}
     ):
-        pass
+        url: str = cls.__BASE_API_URL + endpoint
+        return await DeleteRequest(
+            url=url,
+            data=data
+        ).send_request(auth)
 
 
 class UserAPI(
@@ -95,6 +111,8 @@ class UserAPI(
     @classmethod
     async def get_user(
             cls,
+            auth: int,
+            *,
             telegram_id: int
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_USER.format(
@@ -102,17 +120,21 @@ class UserAPI(
         )
 
         return await cls._get_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def create_user(
             cls,
-            data: DTOStub
+            auth: int,
+            *,
+            data: dtos.CreateUserDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.CREATE_USER
 
         return await cls._post_request(
+            auth,
             endpoint=endpoint,
             data=data.model_dump()
         )
@@ -120,14 +142,17 @@ class UserAPI(
     @classmethod
     async def update_user(
             cls,
+            auth: int,
+            *,
             telegram_id: int,
-            data: DTOStub
+            data: dtos.UpdateUserDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.UPDATE_USER.format(
             telegram_id
         )
 
         return await cls._patch_request(
+            auth,
             endpoint=endpoint,
             data=data.model_dump()
         )
@@ -135,30 +160,43 @@ class UserAPI(
     @classmethod
     async def add_announcement(
             cls,
+            auth: int,
+            *,
             telegram_id: int,
-            data: DTOStub
+            data: dtos.AddAnnouncementDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.ADD_ANNOUNCEMENT.format(
             telegram_id
         )
 
         return await cls._post_request(
+            auth,
             endpoint=endpoint,
             data=data.model_dump()
         )
 
     @classmethod
-    #TODO: придумать решение для множественных параметров в get реквесте
     async def get_user_announcements(
             cls,
-            telegram_id: int
+            auth: int,
+            *,
+            telegram_id: int,
+            mode: int = 0,
+            status: int = 0,
+            limit: int = 1,
+            page: int = 0
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_USER.format(
             telegram_id
         )
+        data = dtos.GetUserAnnouncementsDTO().model_validate(
+            locals()
+        )
 
         return await cls._get_request(
-            endpoint=endpoint
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
         )
 
 
@@ -172,6 +210,8 @@ class AnnouncementsAPI(
     @classmethod
     async def get_announcement(
             cls,
+            auth: int,
+            *,
             announcement_id: str
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_ANNOUNCEMENT.format(
@@ -179,12 +219,15 @@ class AnnouncementsAPI(
         )
 
         return await cls._get_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def delete_announcement(
             cls,
+            auth: int,
+            *,
             announcement_id: str
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.DELETE_ANNOUNCEMENT.format(
@@ -192,18 +235,31 @@ class AnnouncementsAPI(
         )
 
         return await cls._get_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def get_announcements(
             cls,
-            data: DTOStub
+            auth: int,
+            query: str,
+            location: str = "",
+            mode: int = 0,
+            status: int = 0,
+            limit: int = 1,
+            page: int = 0,
+            start_from: str = AnnouncementSort.latest
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_ANNOUNCEMENTS
+        data = dtos.GetAnnouncementsDTO().model_validate(
+            locals()
+        )
 
         return await cls._get_request(
-            endpoint=endpoint
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
         )
 
 
@@ -217,6 +273,8 @@ class AdminAPI(
     @classmethod
     async def get_admin(
             cls,
+            auth: int,
+            *,
             telegram_id: int
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_ADMIN.format(
@@ -224,129 +282,155 @@ class AdminAPI(
         )
 
         return await cls._get_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def get_admins(
-            cls
+            cls,
+            auth: int,
+            limit: int = 1,
+            page: int = 0
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_ADMINS
+        data = dtos.GetAdminsDTO().model_validate(
+            locals()
+        )
 
         return await cls._get_request(
-            endpoint=endpoint
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
         )
 
     @classmethod
     async def get_users(
-            cls
+            cls,
+            auth: int,
+            limit: int = 1,
+            page: int = 0
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_USERS
+        data = dtos.GetUsersDTO().model_validate(
+            locals()
+        )
 
         return await cls._get_request(
-            endpoint=endpoint
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
         )
 
     @classmethod
     async def get_banned_users(
-            cls
+            cls,
+            auth: int,
+            limit: int = 1,
+            page: int = 0
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.GET_BANNED_USERS.format
-
-        return await cls._get_request(
-            endpoint=endpoint
+        data = dtos.GetBannedUsersDTO().model_validate(
+            locals()
         )
 
-    GET_ADMIN: str = "/{telegram_id}"
-    ADD_ADMIN: str = "/{telegram_id}/add_admin"
-    REMOVE_ADMIN: str = "/{telegram_id}/remove_admin"
-    UPDATE_PERMISSIONS: str = "/{telegram_id}/update_permissions"
-    BAN_USER: str = "/{telegram_id}/ban_user"
-    UNBAN_USER: str = "/{telegram_id}/unban_user"
-    ACCEPT_ANNOUNCEMENT: str = "/{announcement_id}/accept_announcement"
-    DECLINE_ANNOUNCEMENT: str = "/{announcement_id}/decline_announcement"
-    DELETE_ANNOUNCEMENT: str = "/{announcement_id}/delete_announcement"
-    GET_USERS: str = "/users/"
-    GET_BANNED_USERS: str = "/banned_users/"
-    GET_ADMINS: str = "/admins/"
+        return await cls._get_request(
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
+        )
 
     @classmethod
     async def add_admin(
             cls,
+            auth: int,
+            *,
             telegram_id: int,
-            data: DTOStub
+            data: dtos.AddAdminDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.ADD_ADMIN.format(
             telegram_id
         )
 
         return await cls._post_request(
+            auth,
             endpoint=endpoint,
-            data=data
+            data=data.model_dump()
         )
 
     @classmethod
-    async def add_admin(
+    async def remove_admin(
             cls,
-            telegram_id: int,
-            data: DTOStub
+            auth: int,
+            *,
+            telegram_id: int
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.REMOVE_ADMIN.format(
             telegram_id
         )
 
         return await cls._delete_request(
-            endpoint=endpoint,
-            data=data
+            auth,
+            endpoint=endpoint
         )
 
     @classmethod
     async def update_permissions(
             cls,
+            auth: int,
+            *,
             telegram_id: int,
-            data: DTOStub
+            data: dtos.UpdatePermissionsDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.UPDATE_PERMISSIONS.format(
             telegram_id
         )
 
         return await cls._patch_request(
+            auth,
             endpoint=endpoint,
-            data=data
+            data=data.model_dump()
         )
 
     @classmethod
     async def ban_user(
             cls,
+            auth: int,
+            *,
             telegram_id: int,
-            data: DTOStub
+            data: dtos.BanUserDTO
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.BAN_USER.format(
             telegram_id
         )
 
         return await cls._post_request(
+            auth,
             endpoint=endpoint,
-            data=data
+            data=data.model_dump()
         )
 
     @classmethod
     async def unban_user(
             cls,
-            telegram_id: int,
-            data: DTOStub
+            auth: int,
+            *,
+            telegram_id: int
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.UNBAN_USER.format(
             telegram_id
         )
 
         return await cls._post_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def accept_announcement(
             cls,
+            auth: int,
+            *,
             announcement_id: str
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.ACCEPT_ANNOUNCEMENT.format(
@@ -354,12 +438,15 @@ class AdminAPI(
         )
 
         return await cls._patch_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def decline_announcement(
             cls,
+            auth: int,
+            *,
             announcement_id: str
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.DECLINE_ANNOUNCEMENT.format(
@@ -367,12 +454,15 @@ class AdminAPI(
         )
 
         return await cls._patch_request(
+            auth,
             endpoint=endpoint
         )
 
     @classmethod
     async def delete_announcement(
             cls,
+            auth: int,
+            *,
             announcement_id: str
     ) -> Union[DataStructure]:
         endpoint: str = cls.__URL + cls.DELETE_ANNOUNCEMENT.format(
@@ -380,6 +470,7 @@ class AdminAPI(
         )
 
         return await cls._delete_request(
+            auth,
             endpoint=endpoint
         )
 
@@ -420,3 +511,7 @@ class OpenStreetMapAPI:
     #
     #         return response_data
     #     return None
+
+import asyncio
+
+print(asyncio.run(AnnouncementsAPI.get_announcements(auth=245, query="test", start_from="oldest")))

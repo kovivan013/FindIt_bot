@@ -58,7 +58,7 @@ class OAuth2:
             request: Request
     ) -> Union[OAuthStructure]:
         """
-        Encrypt secret JWT token. On success returns decrypted token structure.
+        Decrypt secret JWT token. On success returns decrypted token structure.
         :param request:
         :return:
         """

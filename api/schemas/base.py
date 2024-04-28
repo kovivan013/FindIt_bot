@@ -33,4 +33,4 @@ class DataStructure(BaseModel):
 class OAuthStructure(BaseModel):
 
     id_: int = 0
-    expire_at: int = 0
+    exp: int = 0

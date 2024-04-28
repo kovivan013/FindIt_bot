@@ -12,6 +12,7 @@ class PermissionsUpdate(BaseModel):
 
     permissions: Dict[str, bool] = {}
 
+
 class UserBan(BaseModel):
 
     reason: str = ""

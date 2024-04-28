@@ -1,6 +1,7 @@
 import aiohttp
 
-from schemas.schemas import DataStructure
+from common.interfaces import DataStructure
+from utils.utils import OAuth2
 from typing import Union
 from abc import ABC, abstractmethod
 
@@ -18,84 +19,171 @@ class RequestSender(ABC):
     async def _send(self):
         pass
 
-    async def send_request(self) -> Union[DataStructure]:
+    @classmethod
+    async def _check_response(
+            cls,
+            response
+    ) -> Union[DataStructure]:
+        if response.status >= 500:
+
+            return DataStructure(
+                status=response.status,
+                message="❌ Ой-ой.. Схоже виникла помилка.\n"
+                        "Будь ласка, повторіть спробу!"
+            )
+
+        return DataStructure(
+            **(await response.json())
+        )
+
+    async def send_request(
+            self,
+            auth: int
+    ) -> Union[DataStructure]:
 
         self._payload: dict = {
             "url": self.url
         }
 
+        headers: dict = {
+            "Authorization": await OAuth2._prepare_token(
+                auth
+            )
+        }
+
         session_params: dict = {
             "trust_env": True,
+            "headers": headers,
             "connector": aiohttp.TCPConnector()
         }
 
         try:
             async with aiohttp.ClientSession(**session_params) as session:
-                answer: ResponseStructure = await self._send(session)
+                result: DataStructure = await self._send(
+                    session
+                )
         except Exception as err:
-            raise Exception(err)
 
-        # validate answer data
-        result = DataStructure(**answer.data)
-        result.data = answer.data["data"] if "data" in answer.data else answer.data
+            return DataStructure(
+                status=500,
+                message="❌ Ой-ой.. Схоже виникла помилка.\n"
+                        "Будь ласка, повторіть спробу!"
+            )
 
-        # if answer.status not in range(200, 300):
-        #     error_text: dict = {
-        #         "status": answer.status,
-        #         "url": self.url,
-        #         "data": answer.data
-        #     }
-        #     return error_text
         return result
 
 class GetRequest(RequestSender):
-    def __init__(self, url: str = "", data: dict = None):
+
+    def __init__(
+            self,
+            url: str = "",
+            data: dict = None
+    ):
         super().__init__(url)
         self._data_for_send: dict = data
-    async def _send(self, session) -> dict:
-        self._payload.update(params=self._data_for_send)
+
+    async def _send(
+            self,
+            session: aiohttp.ClientSession
+    ) -> Union[DataStructure]:
+        self._payload.update(
+            params=self._data_for_send
+        )
         async with session.get(**self._payload) as response:
-            return ResponseStructure(
-                status=response.status,
-                data=await response.json()
+            return await self._check_response(
+                response
             )
 
 
 class PostRequest(RequestSender):
-    def __init__(self, url: str = "", data: dict = None):
+
+    def __init__(
+            self,
+            url: str = "",
+            data: dict = None
+    ):
         super().__init__(url)
         self._data_for_send: dict = data
 
-    async def _send(self, session):
-        self._payload.update(json=self._data_for_send)
+    async def _send(
+            self,
+            session: aiohttp.ClientSession
+    ) -> Union[DataStructure]:
+        self._payload.update(
+            json=self._data_for_send
+        )
         async with session.post(**self._payload) as response:
-            return ResponseStructure(
-                status=response.status,
-                data=await response.json()
+            return await self._check_response(
+                response
             )
+
 
 class PatchRequest(RequestSender):
-    def __init__(self, url: str = "", data: dict = None):
+
+    def __init__(
+            self,
+            url: str = "",
+            data: dict = None
+    ):
         super().__init__(url)
         self._data_for_send: dict = data
 
-    async def _send(self, session):
-        self._payload.update(json=self._data_for_send)
+    async def _send(
+            self,
+            session: aiohttp.ClientSession
+    ) -> Union[DataStructure]:
+        self._payload.update(
+            json=self._data_for_send
+        )
         async with session.patch(**self._payload) as response:
-            return ResponseStructure(
-                status=response.status,
-                data=await response.json()
+            return await self._check_response(
+                response
             )
+
+
+class PutRequest(RequestSender):
+
+    def __init__(
+            self,
+            url: str = "",
+            data: dict = None
+    ):
+        super().__init__(url)
+        self._data_for_send: dict = data
+
+    async def _send(
+            self,
+            session: aiohttp.ClientSession
+    ) -> Union[DataStructure]:
+        self._payload.update(
+            json=self._data_for_send
+        )
+        async with session.put(**self._payload) as response:
+            return await self._check_response(
+                response
+            )
+
 
 class DeleteRequest(RequestSender):
-    def __init__(self, url: str = "", data: dict = None):
+
+    def __init__(
+            self,
+            url: str = "",
+            data: dict = None
+    ):
         super().__init__(url)
         self._data_for_send: dict = data
 
-    async def _send(self, session):
-        self._payload.update(json=self._data_for_send)
+    async def _send(
+            self,
+            session: aiohttp.ClientSession
+    ) -> Union[DataStructure]:
+        self._payload.update(
+            json=self._data_for_send
+        )
         async with session.delete(**self._payload) as response:
-            return ResponseStructure(
-                status=response.status,
-                data=await response.json()
+            return await self._check_response(
+                response
             )
+
+
