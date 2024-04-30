@@ -1,4 +1,4 @@
-import jwt
+import aiohttp
 
 from network.endpoints import (
     UserEndpoints,
@@ -21,13 +21,8 @@ from common import dtos
 from config import settings
 
 
-class DTOStub(BaseModel):
-    # create and connect all dtos
-    pass
-
 class API:
 
-    # TODO: Authorization
     __BASE_API_URL: str = settings.BASE_API_URL
 
     @classmethod
@@ -186,7 +181,7 @@ class UserAPI(
             limit: int = 1,
             page: int = 0
     ) -> Union[DataStructure]:
-        endpoint: str = cls.__URL + cls.GET_USER.format(
+        endpoint: str = cls.__URL + cls.GET_USER_ANNOUNCEMENTS.format(
             telegram_id
         )
         data = dtos.GetUserAnnouncementsDTO().model_validate(
@@ -475,43 +470,58 @@ class AdminAPI(
         )
 
 
-class OpenStreetMapAPI:
+class OpenStreetMapAPI(API):
 
-    __URL = "https://nominatim.openstreetmap.org/reverse"
+    @classmethod
+    async def get_address(
+            cls,
+            latitude: float,
+            longitude: float
+    ) -> Union[DataStructure]:
+        url: str = "https://nominatim.openstreetmap.org/reverse"
+        params: dict = {
+            "format": "json",
+            "lat": latitude,
+            "lon": longitude
+        }
 
-    # @classmethod
-    # async def get_address(cls, latitude: float, longitude: float) -> 'DataStructure':
-    #     url: str = cls.__URL
-    #
-    #     data: dict = {
-    #         "format": "json",
-    #         "lat": latitude,
-    #         "lon": longitude
-    #     }
-    #
-    #     return await GetRequest(url=url,
-    #                             data=data).send_request()
-    #
-    # @classmethod
-    # async def get_location(cls, name: str) -> 'DataStructure':
-    #     url: str = "https://nominatim.openstreetmap.org/search.php"
-    #
-    #     data: dict = {
-    #         "format": "json",
-    #         "city": name,
-    #         "country": "Ukraine"
-    #     }
-    #
-    #     response = requests.get(url, params=data).json()
-    #     if response:
-    #         response_data: dict = {
-    #             "latitude": float(response[0]['lat']),
-    #             "longitude": float(response[0]['lon']),
-    #         }
-    #
-    #         return response_data
-    #     return None
+        async with aiohttp.ClientSession() as session:
+            return await (
+                await session.get(
+                    url=url,
+                    params=params
+                )
+            ).json()
+
+    @classmethod
+    async def get_location(
+            cls,
+            name: str
+    ) -> Union[DataStructure]:
+        url: str = "https://nominatim.openstreetmap.org/search.php"
+        params: dict = {
+            "format": "json",
+            "city": name,
+            "country": "Ukraine"
+        }
+
+        async with aiohttp.ClientSession() as session:
+            response = await (
+                await session.get(
+                    url=url,
+                    params=params
+                )
+            ).json()
+
+        if response:
+            return {
+                "latitude": float(response[0]['lat']),
+                "longitude": float(response[0]['lon']),
+            }
+
+        return {}
 
 import asyncio
 
-print(asyncio.run(AnnouncementsAPI.get_announcements(auth=245, query="test", start_from="oldest")))
+print(asyncio.run(AnnouncementsAPI.get_announcements(auth=123, query="tesdsrfghds", limit=10, page=3)))
+

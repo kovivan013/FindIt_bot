@@ -54,6 +54,7 @@ class AnnouncementsResponse(BaseModel):
 
     query: str = ""
     page: int = 0
+    pages: int = 0
 
 
 class AnnouncementsOrder(BaseModel):

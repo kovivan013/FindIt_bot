@@ -210,21 +210,26 @@ async def get_announcements(
         ).order_by(
             Announcements.timestamp.desc() if start_from._value
             else Announcements.timestamp.asc()
-        ).offset(
-            page * limit
-        ).limit(
-            limit
         )
     )
 
     announcements: dict = {}
+    offset: int = page * limit
 
-    for announcement in query_result.scalars().all():
-        announcements.update(
-            {
-                announcement.announcement_id: announcement.as_dict()
-            }
-        )
+    for i, announcement in enumerate(query_result.scalars().all()):
+        if not i % limit:
+            document.pages += 1
+
+        if i in range(
+                offset,
+                offset + limit
+        ):
+            if announcement.status == status:
+                announcements.update(
+                    {
+                        announcement.announcement_id: announcement.as_dict()
+                    }
+                )
 
     result.data.update(
         {
