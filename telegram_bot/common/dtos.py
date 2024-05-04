@@ -80,3 +80,4 @@ class GetAdminsDTO(BaseModel):
     limit: int = 1
     page: int = 0
 
+

@@ -12,6 +12,7 @@ class BaseUser(BaseModel):
     phone_number: int = 0
     mode: int = 0
     created_at: int = 0
+    is_banned: bool = False
     notifications: Dict[str, Any] = {}
     status: int = 0
 

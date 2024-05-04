@@ -119,7 +119,15 @@ async def get_user(
 
     await session.close()
 
-    result.data = user.as_model().model_dump()
+    user_model = user.as_model()
+    user_model.is_banned = (
+        await OAuth2._check_banned(
+            telegram_id,
+            session
+        )
+    )._success
+
+    result.data = user_model.model_dump()
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
@@ -159,7 +167,15 @@ async def update_user(
     await session.commit()
     await session.close()
 
-    result.data = user.as_model().model_dump()
+    user_model = user.as_model()
+    user_model.is_banned = (
+        await OAuth2._check_banned(
+            telegram_id,
+            session
+        )
+    )._success
+
+    result.data = user_model.model_dump()
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
@@ -184,7 +200,18 @@ async def add_annoucement(
         return await Reporter(
             exception=exceptions.NoAccess,
             message="Only the account owner have permissions to place the announcements"
-        )
+        )._report()
+
+    is_banned = await OAuth2._check_banned(
+        telegram_id,
+        session
+    )
+
+    if is_banned:
+        return await Reporter(
+            exception=exceptions.NoAccess,
+            message="Banned users cannot add announcements"
+        )._report()
 
     user = await session.get(
         Users,

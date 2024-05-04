@@ -363,25 +363,26 @@ class ListMenu(YesOrNo, Controls):
 
 
 class MainMenu:
-    add_gig: str = f"➕ Додати оголошення"
-    dashboard: str = f"📃 Дошка оголошень"
-    search: str = f"🔍 Знайти річ"
 
-    change_mode: str = "Режим"
-    profile: str = f"👤 Профіль"
-    messages: str = f"📄 Повідомлення"
-    support: str = f"🆘 Підтримка"
-    info_about: str = f"ℹ Про проект"
+    add_announcement: str = "➕ Додати оголошення"
+    dashboard: str = "📃 Дошка оголошень"
+    continue_work: str = "🔍 Продовжити"
+    # search: str = "🔍 Знайти річ"
 
-    add_gig_callback: str = f"add_gig_callback"
-    dashboard_callback: str = f"dashboard_callback"
-    search_callback: str = f"search_callback"
+    user_announcements: str = "👤 Оголошення"
+    notifications: str = "📄 Повідомлення"
+    support: str = "🆘 Підтримка"
+    info_about: str = "ℹ Про проект"
 
-    change_mode_callback: str = f"change_mode_callback"
-    profile_callback: str = f"profile_callback"
-    messages_callback: str = f"settings_callback"
-    support_callback: str = f"support_callback"
-    info_about_callback: str = f"info_about_callback"
+    add_announcement_callback: str = "add_announcement_callback"
+    dashboard_callback: str = "dashboard_callback"
+    continue_work_callback: str = "continue_work_callback"
+    # search_callback: str = "search_callback"
+
+    user_announcements_callback: str = "user_announcements_callback"
+    notifications_callback: str = "notifications_callback"
+    support_callback: str = "support_callback"
+    info_about_callback: str = "info_about_callback"
 
     modes: dict = {
         0: "Шукача 🔦",
@@ -389,59 +390,71 @@ class MainMenu:
     }
 
     @classmethod
-    def keyboard(cls, mode: int = 0) -> Union[InlineKeyboardMarkup]:
+    def keyboard(cls) -> Union[InlineKeyboardMarkup]:
         keyboard = default_inline_keyboard()
 
         keyboard.add(
-            InlineKeyboardButton(text=f"{cls.change_mode} {cls.modes[mode]}",
-                                 callback_data=cls.change_mode_callback)
+            InlineKeyboardButton(
+                text=cls.dashboard,
+                callback_data=cls.dashboard_callback
+            )
         )
 
-        if mode:
-            keyboard.add(
-                InlineKeyboardButton(text=cls.dashboard,
-                                     callback_data=cls.dashboard_callback)
-            )
-        else:
-            keyboard.add(
-                InlineKeyboardButton(text=cls.search,
-                                     callback_data=cls.search_callback)
-            )
-
         keyboard.add(
-            InlineKeyboardButton(text=cls.profile,
-                                 callback_data=cls.profile_callback),
-            InlineKeyboardButton(text=cls.messages,
-                                 callback_data=cls.messages_callback),
-            InlineKeyboardButton(text=cls.support,
-                                 callback_data=cls.support_callback),
-            InlineKeyboardButton(text=cls.info_about,
-                                 callback_data=cls.info_about_callback)
+            InlineKeyboardButton(
+                text=cls.user_announcements,
+                callback_data=cls.user_announcements_callback
+            ),
+            InlineKeyboardButton(
+                text=cls.notifications,
+                callback_data=cls.notifications_callback
+            ),
+            InlineKeyboardButton(
+                text=cls.support,
+                callback_data=cls.support_callback
+            ),
+            InlineKeyboardButton(
+                text=cls.info_about,
+                callback_data=cls.info_about_callback
+            )
         )
 
         return keyboard
 
     @classmethod
-    def add_gig_keyboard(cls) -> Union[InlineKeyboardMarkup]:
+    def welcome_keyboard(cls) -> Union[InlineKeyboardMarkup]:
         keyboard = default_inline_keyboard()
 
         keyboard.add(
-            InlineKeyboardButton(text=cls.add_gig,
-                                 callback_data=cls.add_gig_callback)
+            InlineKeyboardButton(
+                text=cls.continue_work,
+                callback_data=cls.continue_work_callback
+            )
         )
 
         return keyboard
 
-    @classmethod
-    def link_keyboard(cls) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=f"👆 Тицяй сюди!!",
-                                 url="https://t.me/FindOutIt_Bot?start")
-        )
-
-        return keyboard
+    # @classmethod
+    # def add_gig_keyboard(cls) -> Union[InlineKeyboardMarkup]:
+    #     keyboard = default_inline_keyboard()
+    #
+    #     keyboard.add(
+    #         InlineKeyboardButton(text=cls.add_gig,
+    #                              callback_data=cls.add_gig_callback)
+    #     )
+    #
+    #     return keyboard
+    #
+    # @classmethod
+    # def link_keyboard(cls) -> Union[InlineKeyboardMarkup]:
+    #     keyboard = default_inline_keyboard()
+    #
+    #     keyboard.add(
+    #         InlineKeyboardButton(text=f"👆 Тицяй сюди!!",
+    #                              url="https://t.me/FindOutIt_Bot?start")
+    #     )
+    #
+    #     return keyboard
 
 
 class RegisterMenu(MainMenu, YesOrNo):
@@ -591,467 +604,467 @@ class DropdownMenu(MainMenu):
         return {"inline_keyboard": buttons}
 
 
-class MyProfile(MainMenu, Controls):
-    info_about: str = f"🔓 Про себе ▶"
-    gigs: str = f"📰 Мої оголошення ▶"
-
-    info_about_callback: str = f"info_about_callback"
-    gigs_callback: str = f"gigs_callback"
-
-    update: str = f"🖊 Змінити"
-    share: str = f"🔗 Поділитися"
-
-    update_callback: str = f"update_callback"
-    share_callback: str = f"share_callback"
-    change_type_callback = "change_type_callback"
-
-    @classmethod
-    def info_about_placeholder(cls) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard(row_width=1)
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.gigs,
-                                 callback_data=cls.gigs_callback),
-            InlineKeyboardButton(text=cls.add_gig,
-                                 callback_data=cls.add_gig_callback)
-        )
-
-        return keyboard
-
-    @classmethod
-    def info_about_keyboard(cls) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard(row_width=1)
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.update,
-                                 callback_data=cls.update_callback),
-            InlineKeyboardButton(text=cls.share,
-                                 callback_data=cls.share_callback)
-        )
-
-        return keyboard
-
-    @classmethod
-    def gigs_placeholder(cls, document: GigsResponse) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard(row_width=1)
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.info_about,
-                                 callback_data=cls.info_about_callback),
-            InlineKeyboardButton(text=f"{Filters.types[document.status](document.gigs)} ▼",
-                                 callback_data=cls.change_type_callback)
-        )
-        keyboard.row(*cls.pages_keyboard(page=document.page,
-                                         pages=document.pages))
-
-        return keyboard
-
-
-class DashboardMenu(Filters, MainMenu):
-
-    @classmethod
-    def gigs_placeholder(cls, document: GigsResponse) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=f"↩ На головну",
-                                 callback_data="back_to_main"),
-            InlineKeyboardButton(text=cls.placeholder,
-                                 callback_data=cls.placeholder_callback),
-            InlineKeyboardButton(text=cls.add_gig,
-                                 callback_data=cls.add_gig_callback)
-        )
-        keyboard.row(*cls.pages_keyboard(page=document.page,
-                                         pages=document.pages))
-
-        return keyboard
-
-
-class UpdateProfile(Controls, YesOrNo):
-
-    def __init__(self):
-        self.username: str = f"✏️ Нікнейм"
-        self.description: str = f"📝 Опис"
-
-        self.username_callback: str = f"username_callback"
-        self.description_callback: str = f"description_callback"
-
-    @classmethod
-    def keyboard(cls) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard(row_width=1)
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data=cls.backward_callback)
-        )
-
-        return keyboard
-
-    @classmethod
-    def base_keyboard(cls, with_save: bool = True) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data=cls.backward_callback)
-        )
-        if with_save:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.save,
-                                     callback_data=cls.save_callback)
-            )
-
-        return keyboard
-
-
-class CreateGigMenu(YesOrNo):
-    faq: str = f"❓ Як?"
-
-    faq_callback: str = f"❓ Як?"
-
-    @classmethod
-    def keyboard(cls, with_next: bool = False, with_faq: bool = False,
-                 with_skip: bool = False, with_ready: bool = False):
-        keyboard = default_inline_keyboard(row_width=3)
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.cancel,
-                                 callback_data=cls.cancel_callback)
-        )
-        if with_next:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.next,
-                                     callback_data=cls.next_callback)
-            )
-        if with_faq:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.faq,
-                                     callback_data=cls.faq_callback)
-            )
-        if with_skip:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.skip,
-                                     callback_data=cls.skip_callback)
-            )
-        if with_ready:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.ready,
-                                     callback_data=cls.ready_callback)
-            )
-
-        return keyboard
-
-
-class CalendarMenu(Controls, YesOrNo):
-    short_days: list = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"]
-    days: list = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота", "Неділя"]
-    months = {
-        1: {"month": "Січень", "days": 31, "case": "Січня"}, 2: {"month": "Лютий", "days": 28, "case": "Лютого"},
-        3: {"month": "Березень", "days": 31, "case": "Березня"}, 4: {"month": "Квітень", "days": 30, "case": "Квітня"},
-        5: {"month": "Травень", "days": 31, "case": "Травня"}, 6: {"month": "Червень", "days": 30, "case": "Червня"},
-        7: {"month": "Липень", "days": 31, "case": "Липня"}, 8: {"month": "Серпень", "days": 31, "case": "Серпня"},
-        9: {"month": "Вересень", "days": 30, "case": "Вересня"}, 10: {"month": "Жовтень", "days": 31, "case": "Жовтня"},
-        11: {"month": "Листопад", "days": 30, "case": "Листопада"},
-        12: {"month": "Грудень", "days": 31, "case": "Грудня"}
-    }
-
-    now: str = f"🗓️ Зараз"
-
-    date_callback: str = f"_date_callback"
-
-    @classmethod
-    def keyboard(cls, with_cancel: bool = False, with_save: bool = False, with_forward: bool = True,
-                 with_next: bool = False, year: int = None, month: int = None, day: int = None) -> Union[
-        InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard(row_width=7)
-
-        args = all([year, month, day])
-        now = datetime.datetime.now()
-
-        if args:
-            today = datetime.datetime(year, month, day, now.hour, now.minute)
-        else:
-            today = datetime.datetime.now()
-
-        firts_month_day = datetime.datetime(today.year, today.month, 1)
-        weekday = firts_month_day.weekday()
-        days_to_end = 7 - weekday
-        days_in_month = cls.months[today.month]["days"]
-
-        day = 1
-
-        if today.year % 4 == 0 and today.month == 2:
-            days_in_month = 29
-
-        r = 6
-
-        if days_in_month - days_to_end - 28 > 0:
-            r += 1
-
-        keyboard.add(
-            InlineKeyboardButton(text=f"{cls.months[today.month]['month']}, {today.year}",
-                                 callback_data="None")
-        )
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.short_backward,
-                                 callback_data=cls.backward_callback)
-        )
-
-        if with_forward:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.short_forward,
-                                     callback_data=cls.forward_callback)
-            )
-
-        days = []
-        for short_day in cls.short_days:
-            days.append(
-                InlineKeyboardButton(
-                    text=short_day,
-                    callback_data="None"
-                )
-            )
-
-        keyboard.row(*days)
-
-        for i in range(1, r):
-            for j in range(1, 8):
-                if (day > days_in_month or (i < 2 and j < weekday + 1)) or (
-                        day > now.day and today.month == now.month and today.year == now.year):
-                    keyboard.insert(
-                        InlineKeyboardButton(
-                            text=" ",
-                            callback_data="None"
-                        )
-                    )
-                    continue
-                callback = int(datetime.datetime(today.year,
-                                                 today.month,
-                                                 day,
-                                                 today.hour,
-                                                 today.minute).timestamp())
-                keyboard.insert(
-                    InlineKeyboardButton(
-                        text=f"{day}",
-                        callback_data=f"{callback}{cls.date_callback}"
-                    )
-                )
-
-                day += 1
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.now,
-                                 callback_data=f"now{cls.date_callback}"
-                                 )
-        )
-
-        if with_next:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.next,
-                                     callback_data=cls.next_callback)
-            )
-
-        if with_cancel:
-            keyboard.add(
-                InlineKeyboardButton(text=cls.cancel,
-                                     callback_data=cls.cancel_callback)
-            )
-            if with_save:
-                keyboard.insert(
-                    InlineKeyboardButton(text=cls.next,
-                                         callback_data=cls.next_callback)
-                )
-
-        return keyboard
-
-
-class GigContextMenu(YesOrNo, Controls):
-    # Также не забыть добавить обработку на то, твое ли то объявление
-
-    # placeholder: str = "⚙️ Налаштування ▲"
-
-    detail: str = f"👉 Детальніше"
-    preview: str = f"🔍 Переглянути"
-    stop: str = f"🛑 Зупинити"
-    contact: str = f"📞 Це моя річ!"
-    call: str = f"🔍 Я знайшов річ!"
-    chat_for_talking: str = f"Чат для зв'язку"
-    # stats: str = f"📊 Статистика"
-    # share: str = f"🔗 Поділитися"
-
-    # placeholder_callback: str = f"_placeholder"
-    detail_callback: str = f"detail_callback"
-    dashboard_callback: str = f"board_callback" # text equals detail button
-    preview_callback: str = f"_preview_callback"
-    stop_callback: str = f"_stop_callback"
-    contact_callback: str = f"_cont_callback"
-    call_callback: str = f"_call_callback"
-    # stats_callback: str = f"_stats_callback"
-    # share_callback: str = f"_share_callback"
-    confirm_delete_callback: str = f"_confirm_delete"
-
-    @classmethod
-    def keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-        callback_value: str = f"{telegram_id}_{gig_id}"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.preview,
-                                 callback_data=f"{callback_value}{cls.preview_callback}"),
-            InlineKeyboardButton(text=cls.stop,
-                                 callback_data=f"{callback_value}{cls.stop_callback}")
-        )
-
-        return keyboard
-
-    @classmethod
-    def confirm_delete(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-        callback_value: str = f"{telegram_id}_{gig_id}"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.yes,
-                                 callback_data=f"{callback_value}{cls.confirm_delete_callback}"),
-            InlineKeyboardButton(text=cls.no,
-                                 callback_data=cls.no_callback)
-        )
-
-        return keyboard
-
-    @classmethod
-    def marketplace_keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-        callback_value: str = f"{telegram_id}_{gig_id}"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.detail,
-                                 callback_data=f"{callback_value}_{cls.detail_callback}")
-        )
-
-        return keyboard
-
-    @classmethod
-    def dashboard_keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-        callback_value: str = f"{telegram_id}_{gig_id}"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.detail,
-                                 callback_data=f"{callback_value}_{cls.dashboard_callback}")
-        )
-
-        return keyboard
-
-    @classmethod
-    def contact_keyboard(cls, telegram_id: int, gig_id: int,
-                         with_contact: bool = False, with_call: bool = False) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-        callback_value: str = f"{telegram_id}_{gig_id}"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data=cls.backward_callback)
-        )
-        if with_contact:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.contact,
-                                     callback_data=f"{callback_value}{cls.contact_callback}")
-            )
-        elif with_call:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.call,
-                                     callback_data=f"{callback_value}{cls.call_callback}")
-            )
-
-        return keyboard
-
-    @classmethod
-    def chat_keyboard(cls, url: str) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data=cls.backward_callback),
-            InlineKeyboardButton(text=cls.chat_for_talking,
-                                 url=url)
-        )
-
-
-        return keyboard
-
-
-class MarketplaceMenu(Filters, MainMenu):
-    search: str = f"Пошук 🔦"
-
-    search_callback: str = f"search_callback"
-
-    @classmethod
-    def keyboard(cls, page: int, pages: int) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text="↩ На головну",
-                                 callback_data="back_to_main"),
-            InlineKeyboardButton(text=cls.placeholder,
-                                 callback_data=cls.placeholder_callback),
-        )
-        keyboard.add(
-            InlineKeyboardButton(text=cls.add_gig,
-                                 callback_data=cls.add_gig_callback)
-        )
-
-        keyboard.row(*cls.pages_keyboard(page=page,
-                                         pages=pages))
-
-        return keyboard
-
-    @classmethod
-    def search_keyboard(cls, with_search: bool = False) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data="back_to_main")
-        )
-
-        if with_search:
-            keyboard.insert(
-                InlineKeyboardButton(text=cls.search,
-                                     callback_data=cls.search_callback)
-            )
-
-        return keyboard
-
-class AdminMenu(YesOrNo):
-
-    @classmethod
-    def check_keyboard(cls, telegram_id: int, gig_id: int) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        yes_value = f"{telegram_id}_{gig_id}_accept"
-        no_value = f"{telegram_id}_{gig_id}_decline"
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.yes,
-                                 callback_data=yes_value),
-            InlineKeyboardButton(text=cls.no,
-                                 callback_data=no_value)
-        )
-
-        return keyboard
-
-
-class MessagesButtons(GigContextMenu):
-
-    @classmethod
-    def keyboard(cls) -> Union[InlineKeyboardMarkup]:
-        keyboard = default_inline_keyboard()
-
-        keyboard.add(
-            InlineKeyboardButton(text=cls.backward,
-                                 callback_data=cls.backward_callback)
-        )
-
-        return keyboard
+# class MyProfile(MainMenu, Controls):
+#     info_about: str = f"🔓 Про себе ▶"
+#     gigs: str = f"📰 Мої оголошення ▶"
+#
+#     info_about_callback: str = f"info_about_callback"
+#     gigs_callback: str = f"gigs_callback"
+#
+#     update: str = f"🖊 Змінити"
+#     share: str = f"🔗 Поділитися"
+#
+#     update_callback: str = f"update_callback"
+#     share_callback: str = f"share_callback"
+#     change_type_callback = "change_type_callback"
+#
+#     @classmethod
+#     def info_about_placeholder(cls) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard(row_width=1)
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.gigs,
+#                                  callback_data=cls.gigs_callback),
+#             InlineKeyboardButton(text=cls.add_gig,
+#                                  callback_data=cls.add_gig_callback)
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def info_about_keyboard(cls) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard(row_width=1)
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.update,
+#                                  callback_data=cls.update_callback),
+#             InlineKeyboardButton(text=cls.share,
+#                                  callback_data=cls.share_callback)
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def gigs_placeholder(cls, document: GigsResponse) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard(row_width=1)
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.info_about,
+#                                  callback_data=cls.info_about_callback),
+#             InlineKeyboardButton(text=f"{Filters.types[document.status](document.gigs)} ▼",
+#                                  callback_data=cls.change_type_callback)
+#         )
+#         keyboard.row(*cls.pages_keyboard(page=document.page,
+#                                          pages=document.pages))
+#
+#         return keyboard
+#
+#
+# class DashboardMenu(Filters, MainMenu):
+#
+#     @classmethod
+#     def gigs_placeholder(cls, document: GigsResponse) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=f"↩ На головну",
+#                                  callback_data="back_to_main"),
+#             InlineKeyboardButton(text=cls.placeholder,
+#                                  callback_data=cls.placeholder_callback),
+#             InlineKeyboardButton(text=cls.add_gig,
+#                                  callback_data=cls.add_gig_callback)
+#         )
+#         keyboard.row(*cls.pages_keyboard(page=document.page,
+#                                          pages=document.pages))
+#
+#         return keyboard
+#
+#
+# class UpdateProfile(Controls, YesOrNo):
+#
+#     def __init__(self):
+#         self.username: str = f"✏️ Нікнейм"
+#         self.description: str = f"📝 Опис"
+#
+#         self.username_callback: str = f"username_callback"
+#         self.description_callback: str = f"description_callback"
+#
+#     @classmethod
+#     def keyboard(cls) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard(row_width=1)
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data=cls.backward_callback)
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def base_keyboard(cls, with_save: bool = True) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data=cls.backward_callback)
+#         )
+#         if with_save:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.save,
+#                                      callback_data=cls.save_callback)
+#             )
+#
+#         return keyboard
+#
+#
+# class CreateGigMenu(YesOrNo):
+#     faq: str = f"❓ Як?"
+#
+#     faq_callback: str = f"❓ Як?"
+#
+#     @classmethod
+#     def keyboard(cls, with_next: bool = False, with_faq: bool = False,
+#                  with_skip: bool = False, with_ready: bool = False):
+#         keyboard = default_inline_keyboard(row_width=3)
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.cancel,
+#                                  callback_data=cls.cancel_callback)
+#         )
+#         if with_next:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.next,
+#                                      callback_data=cls.next_callback)
+#             )
+#         if with_faq:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.faq,
+#                                      callback_data=cls.faq_callback)
+#             )
+#         if with_skip:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.skip,
+#                                      callback_data=cls.skip_callback)
+#             )
+#         if with_ready:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.ready,
+#                                      callback_data=cls.ready_callback)
+#             )
+#
+#         return keyboard
+#
+#
+# class CalendarMenu(Controls, YesOrNo):
+#     short_days: list = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"]
+#     days: list = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота", "Неділя"]
+#     months = {
+#         1: {"month": "Січень", "days": 31, "case": "Січня"}, 2: {"month": "Лютий", "days": 28, "case": "Лютого"},
+#         3: {"month": "Березень", "days": 31, "case": "Березня"}, 4: {"month": "Квітень", "days": 30, "case": "Квітня"},
+#         5: {"month": "Травень", "days": 31, "case": "Травня"}, 6: {"month": "Червень", "days": 30, "case": "Червня"},
+#         7: {"month": "Липень", "days": 31, "case": "Липня"}, 8: {"month": "Серпень", "days": 31, "case": "Серпня"},
+#         9: {"month": "Вересень", "days": 30, "case": "Вересня"}, 10: {"month": "Жовтень", "days": 31, "case": "Жовтня"},
+#         11: {"month": "Листопад", "days": 30, "case": "Листопада"},
+#         12: {"month": "Грудень", "days": 31, "case": "Грудня"}
+#     }
+#
+#     now: str = f"🗓️ Зараз"
+#
+#     date_callback: str = f"_date_callback"
+#
+#     @classmethod
+#     def keyboard(cls, with_cancel: bool = False, with_save: bool = False, with_forward: bool = True,
+#                  with_next: bool = False, year: int = None, month: int = None, day: int = None) -> Union[
+#         InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard(row_width=7)
+#
+#         args = all([year, month, day])
+#         now = datetime.datetime.now()
+#
+#         if args:
+#             today = datetime.datetime(year, month, day, now.hour, now.minute)
+#         else:
+#             today = datetime.datetime.now()
+#
+#         firts_month_day = datetime.datetime(today.year, today.month, 1)
+#         weekday = firts_month_day.weekday()
+#         days_to_end = 7 - weekday
+#         days_in_month = cls.months[today.month]["days"]
+#
+#         day = 1
+#
+#         if today.year % 4 == 0 and today.month == 2:
+#             days_in_month = 29
+#
+#         r = 6
+#
+#         if days_in_month - days_to_end - 28 > 0:
+#             r += 1
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=f"{cls.months[today.month]['month']}, {today.year}",
+#                                  callback_data="None")
+#         )
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.short_backward,
+#                                  callback_data=cls.backward_callback)
+#         )
+#
+#         if with_forward:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.short_forward,
+#                                      callback_data=cls.forward_callback)
+#             )
+#
+#         days = []
+#         for short_day in cls.short_days:
+#             days.append(
+#                 InlineKeyboardButton(
+#                     text=short_day,
+#                     callback_data="None"
+#                 )
+#             )
+#
+#         keyboard.row(*days)
+#
+#         for i in range(1, r):
+#             for j in range(1, 8):
+#                 if (day > days_in_month or (i < 2 and j < weekday + 1)) or (
+#                         day > now.day and today.month == now.month and today.year == now.year):
+#                     keyboard.insert(
+#                         InlineKeyboardButton(
+#                             text=" ",
+#                             callback_data="None"
+#                         )
+#                     )
+#                     continue
+#                 callback = int(datetime.datetime(today.year,
+#                                                  today.month,
+#                                                  day,
+#                                                  today.hour,
+#                                                  today.minute).timestamp())
+#                 keyboard.insert(
+#                     InlineKeyboardButton(
+#                         text=f"{day}",
+#                         callback_data=f"{callback}{cls.date_callback}"
+#                     )
+#                 )
+#
+#                 day += 1
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.now,
+#                                  callback_data=f"now{cls.date_callback}"
+#                                  )
+#         )
+#
+#         if with_next:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.next,
+#                                      callback_data=cls.next_callback)
+#             )
+#
+#         if with_cancel:
+#             keyboard.add(
+#                 InlineKeyboardButton(text=cls.cancel,
+#                                      callback_data=cls.cancel_callback)
+#             )
+#             if with_save:
+#                 keyboard.insert(
+#                     InlineKeyboardButton(text=cls.next,
+#                                          callback_data=cls.next_callback)
+#                 )
+#
+#         return keyboard
+#
+#
+# class GigContextMenu(YesOrNo, Controls):
+#     # Также не забыть добавить обработку на то, твое ли то объявление
+#
+#     # placeholder: str = "⚙️ Налаштування ▲"
+#
+#     detail: str = f"👉 Детальніше"
+#     preview: str = f"🔍 Переглянути"
+#     stop: str = f"🛑 Зупинити"
+#     contact: str = f"📞 Це моя річ!"
+#     call: str = f"🔍 Я знайшов річ!"
+#     chat_for_talking: str = f"Чат для зв'язку"
+#     # stats: str = f"📊 Статистика"
+#     # share: str = f"🔗 Поділитися"
+#
+#     # placeholder_callback: str = f"_placeholder"
+#     detail_callback: str = f"detail_callback"
+#     dashboard_callback: str = f"board_callback" # text equals detail button
+#     preview_callback: str = f"_preview_callback"
+#     stop_callback: str = f"_stop_callback"
+#     contact_callback: str = f"_cont_callback"
+#     call_callback: str = f"_call_callback"
+#     # stats_callback: str = f"_stats_callback"
+#     # share_callback: str = f"_share_callback"
+#     confirm_delete_callback: str = f"_confirm_delete"
+#
+#     @classmethod
+#     def keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#         callback_value: str = f"{telegram_id}_{gig_id}"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.preview,
+#                                  callback_data=f"{callback_value}{cls.preview_callback}"),
+#             InlineKeyboardButton(text=cls.stop,
+#                                  callback_data=f"{callback_value}{cls.stop_callback}")
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def confirm_delete(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#         callback_value: str = f"{telegram_id}_{gig_id}"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.yes,
+#                                  callback_data=f"{callback_value}{cls.confirm_delete_callback}"),
+#             InlineKeyboardButton(text=cls.no,
+#                                  callback_data=cls.no_callback)
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def marketplace_keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#         callback_value: str = f"{telegram_id}_{gig_id}"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.detail,
+#                                  callback_data=f"{callback_value}_{cls.detail_callback}")
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def dashboard_keyboard(cls, telegram_id: int = 0, gig_id: int = 0) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#         callback_value: str = f"{telegram_id}_{gig_id}"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.detail,
+#                                  callback_data=f"{callback_value}_{cls.dashboard_callback}")
+#         )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def contact_keyboard(cls, telegram_id: int, gig_id: int,
+#                          with_contact: bool = False, with_call: bool = False) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#         callback_value: str = f"{telegram_id}_{gig_id}"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data=cls.backward_callback)
+#         )
+#         if with_contact:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.contact,
+#                                      callback_data=f"{callback_value}{cls.contact_callback}")
+#             )
+#         elif with_call:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.call,
+#                                      callback_data=f"{callback_value}{cls.call_callback}")
+#             )
+#
+#         return keyboard
+#
+#     @classmethod
+#     def chat_keyboard(cls, url: str) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data=cls.backward_callback),
+#             InlineKeyboardButton(text=cls.chat_for_talking,
+#                                  url=url)
+#         )
+#
+#
+#         return keyboard
+#
+#
+# class MarketplaceMenu(Filters, MainMenu):
+#     search: str = f"Пошук 🔦"
+#
+#     search_callback: str = f"search_callback"
+#
+#     @classmethod
+#     def keyboard(cls, page: int, pages: int) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text="↩ На головну",
+#                                  callback_data="back_to_main"),
+#             InlineKeyboardButton(text=cls.placeholder,
+#                                  callback_data=cls.placeholder_callback),
+#         )
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.add_gig,
+#                                  callback_data=cls.add_gig_callback)
+#         )
+#
+#         keyboard.row(*cls.pages_keyboard(page=page,
+#                                          pages=pages))
+#
+#         return keyboard
+#
+#     @classmethod
+#     def search_keyboard(cls, with_search: bool = False) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data="back_to_main")
+#         )
+#
+#         if with_search:
+#             keyboard.insert(
+#                 InlineKeyboardButton(text=cls.search,
+#                                      callback_data=cls.search_callback)
+#             )
+#
+#         return keyboard
+#
+# class AdminMenu(YesOrNo):
+#
+#     @classmethod
+#     def check_keyboard(cls, telegram_id: int, gig_id: int) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         yes_value = f"{telegram_id}_{gig_id}_accept"
+#         no_value = f"{telegram_id}_{gig_id}_decline"
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.yes,
+#                                  callback_data=yes_value),
+#             InlineKeyboardButton(text=cls.no,
+#                                  callback_data=no_value)
+#         )
+#
+#         return keyboard
+#
+#
+# class MessagesButtons(GigContextMenu):
+#
+#     @classmethod
+#     def keyboard(cls) -> Union[InlineKeyboardMarkup]:
+#         keyboard = default_inline_keyboard()
+#
+#         keyboard.add(
+#             InlineKeyboardButton(text=cls.backward,
+#                                  callback_data=cls.backward_callback)
+#         )
+#
+#         return keyboard
 

@@ -1,7 +1,7 @@
 import aiohttp
 
-from common.interfaces import DataStructure
-from utils.utils import OAuth2
+from common.interfaces import DataStructure, DataModel
+from classes.utils_classes import OAuth2
 from typing import Union
 from abc import ABC, abstractmethod
 
@@ -69,6 +69,10 @@ class RequestSender(ABC):
                 message="❌ Ой-ой.. Схоже виникла помилка.\n"
                         "Будь ласка, повторіть спробу!"
             )
+
+        result.data = DataModel(
+            result.data
+        )
 
         return result
 

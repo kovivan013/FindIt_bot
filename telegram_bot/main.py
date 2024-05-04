@@ -1,6 +1,10 @@
-from config import dp
 from aiogram import executor
 
+from config import dp
+from handlers.events import register_events
+
+
+register_events()
 
 async def on_startup(_) -> None:
     print("Bot started!")

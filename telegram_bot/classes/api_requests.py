@@ -521,7 +521,4 @@ class OpenStreetMapAPI(API):
 
         return {}
 
-import asyncio
-
-print(asyncio.run(AnnouncementsAPI.get_announcements(auth=123, query="tesdsrfghds", limit=10, page=3)))
 

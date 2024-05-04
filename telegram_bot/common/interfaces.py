@@ -27,6 +27,39 @@ class DataStructure(BaseModel):
         return self.status in range(200, 300) and self.success
 
 
+class DataModel:
+
+    def __init__(
+            self,
+            data: dict
+    ) -> None:
+        for key, value in data.items():
+            setattr(
+                self, key, value
+            )
+            if isinstance(value, dict):
+                setattr(
+                    self, key, DataModel(
+                        value
+                    )
+                )
+
+    def __bool__(self):
+        return bool(
+            vars(self)
+        )
+
+    def __repr__(self):
+        print("used")
+        params = ', '.join(
+            f'{attr}: {value!r}'
+            for attr, value in self.__dict__.items()
+            if not attr.startswith('_')
+        )
+
+        return f"{{{params}}}"
+
+
 class OAuthStructure(BaseModel):
 
     id_: int = 0

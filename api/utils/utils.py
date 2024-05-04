@@ -15,6 +15,7 @@ from config import settings
 # from network.endpoints.admin import check_admin
 from database.models.models import (
     Admins,
+    BannedUsers,
     Users,
     Announcements
 )
@@ -124,6 +125,31 @@ class OAuth2:
         await session.close()
 
         result.data = admin.as_dict()
+        result._status = status.HTTP_200_OK
+
+        return result
+
+    @classmethod
+    async def _check_banned(
+            cls,
+            telegram_id: int,
+            session: AsyncSession,
+    ) -> Union[DataStructure]:
+        result = DataStructure()
+
+        banned_user = await session.get(
+            BannedUsers,
+            telegram_id
+        )
+
+        await session.close()
+
+        if not banned_user:
+            result._status = status.HTTP_404_NOT_FOUND
+
+            return result
+
+        result.data = banned_user.as_dict()
         result._status = status.HTTP_200_OK
 
         return result
