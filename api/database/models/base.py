@@ -40,7 +40,9 @@ class Base(DeclarativeBase):
         }
 
     def validate(self, obj: dict):
+        print(vars(self))
         data = self.as_dict()
+        print(data, obj)
         for i, v in obj.items():
             if i in data:
                 setattr(

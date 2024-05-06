@@ -61,12 +61,7 @@ async def check_username(
         state: FSMContext
 ) -> None:
     storage = FSMStorageProxy(state)
-    print(await storage.get_data(FSMActions.CREATE_USER))
-    await storage.update_data(FSMActions.CREATE_USER, telegram_id=event.from_user.id)
-    print(await storage.get_data(FSMActions.CREATE_USER))
-    await storage.update_data(FSMActions.CREATE_USER, username=event.from_user.username)
-    print(await storage.get_data(FSMActions.CREATE_USER))
-    print(await storage.data_model(FSMActions.CREATE_USER, BaseUser))
+
     if len(event.text) <= 50:
         for i in event.text:
             if i not in Symbols.UKRAINIAN_ALPHABET + Symbols.ENGLISH_ALPHABET + " ":

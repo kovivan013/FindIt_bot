@@ -15,3 +15,11 @@ class UserUpdate(BaseModel):
     username: Optional[str] = ""
     description: Optional[str] = ""
     phone_number: Optional[int] = 0
+
+
+class NotificationSend(BaseModel):
+
+    preview: str = ""
+    text: str = ""
+    markup_type: int = 0
+

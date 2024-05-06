@@ -2,6 +2,11 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
+class DebugEndpoints:
+
+    HEALTH: str = "/health"
+
+
 class UserEndpoints:
 
     GET_USER: str = "/{telegram_id}"
@@ -9,7 +14,10 @@ class UserEndpoints:
     UPDATE_USER: str = "/{telegram_id}"
     ADD_ANNOUNCEMENT: str = "/{telegram_id}/add_announcement"
     GET_USER_ANNOUNCEMENTS: str = "/{telegram_id}/announcements"
-    SEND_NOTIFICATION: str = "/{telegram_id}/send_notification"
+    GET_NOTIFICATIONS: str = "/{telegram_id}/notifications"
+    SEND_NOTIFICATION: str = "/{telegram_id}/notifications"
+    GET_NOTIFICATION: str = "/{telegram_id}/notifications/{notification_id}"
+    READ_NOTIFICATION: str = "/{telegram_id}/notifications/{notification_id}/read"
 
 
 class AnnouncementEndpoints:

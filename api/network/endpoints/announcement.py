@@ -21,7 +21,8 @@ from database.core import (
 )
 from database.models.models import (
     Users,
-    Announcements
+    Announcements,
+    BannedUsers
 )
 from common.dto.user import (
     UserCreate,
@@ -174,9 +175,7 @@ async def get_announcements(
 
     banned_users = await session.execute(
         select(
-            Users.telegram_id
-        ).filter(
-            Users.status == UserStatus.BANNED
+            BannedUsers.telegram_id
         )
     )
 

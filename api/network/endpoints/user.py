@@ -19,11 +19,13 @@ from database.core import (
 )
 from database.models.models import (
     Users,
-    Announcements
+    Announcements,
+    Notifications
 )
 from common.dto.user import (
     UserCreate,
-    UserUpdate
+    UserUpdate,
+    NotificationSend
 )
 from common.dto.announcement import (
     AddAnnouncement
@@ -57,10 +59,10 @@ async def create_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    await OAuth2._check_token(
-        request,
-        session
-    )
+    # await OAuth2._check_token(
+    #     request,
+    #     session
+    # )
     result = DataStructure()
 
     data_scheme = BaseUser().model_validate(
@@ -78,11 +80,17 @@ async def create_user(
         )._report()
 
     data_scheme.created_at = utils.timestamp()
+
     session.add(
         Users(
-            **data_scheme.model_dump()
+            **data_scheme.model_dump(
+                exclude={
+                    "is_banned"
+                }
+            )
         )
     )
+
     await session.commit()
     await session.close()
 
@@ -244,6 +252,7 @@ async def add_annoucement(
 
     return result
 
+
 @user_router.get(UserEndpoints.GET_USER_ANNOUNCEMENTS)
 async def get_user_announcements(
         request: Request,
@@ -272,6 +281,17 @@ async def get_user_announcements(
         session
     )
     result = DataStructure()
+
+    user = await session.get(
+        Users,
+        telegram_id
+    )
+
+    if not user:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="User not found"
+        )._report()
 
     document = UserAnnouncementsResponse(
         status=status,
@@ -325,3 +345,107 @@ async def get_user_announcements(
     result._status = HTTPStatus.HTTP_200_OK
 
     return result
+
+
+@user_router.get(UserEndpoints.GET_NOTIFICATIONS)
+async def get_notifications(
+        telegram_id: int,
+        request: Request,
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session
+    )
+    result = DataStructure()
+
+    await OAuth2._check_ownership(
+        telegram_id,
+        request
+    )
+
+    user = await session.get(
+        Users,
+        telegram_id
+    )
+
+    if not user:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="User not found"
+        )._report()
+
+    notifications = await session.get(
+        Notifications,
+        telegram_id
+    )
+
+    await session.close()
+
+    result.data.update(
+        {
+            "notifications": notifications.content,
+            "details": notifications.details
+        }
+    )
+    result._status = HTTPStatus.HTTP_200_OK
+
+    return result
+
+
+@user_router.post(UserEndpoints.SEND_NOTIFICATION)
+async def send_notification(
+        telegram_id: int,
+        parameters: NotificationSend,
+        request: Request,
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session
+    )
+    result = DataStructure()
+
+    return result
+
+
+@user_router.get(UserEndpoints.GET_NOTIFICATION)
+async def get_notification(
+        telegram_id: int,
+        notification_id: int,
+        request: Request,
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session
+    )
+    result = DataStructure()
+
+    return result
+
+
+@user_router.patch(UserEndpoints.READ_NOTIFICATION)
+async def read_notification(
+        telegram_id: int,
+        notification_id: int,
+        request: Request,
+        session: AsyncSession = Depends(
+            core.create_sa_session
+        )
+) -> Union[DataStructure]:
+    await OAuth2._check_token(
+        request,
+        session
+    )
+    result = DataStructure()
+
+    return result
+
+

@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from .endpoints.debug import debug_router
 from .endpoints.admin import admin_router
 from .endpoints.user import user_router
 from .endpoints.announcement import announcement_router
@@ -6,6 +7,11 @@ from .endpoints.announcement import announcement_router
 
 api_router = APIRouter()
 
+api_router.include_router(
+    debug_router,
+    prefix="/debug",
+    tags=["Debug"]
+)
 api_router.include_router(
     admin_router,
     prefix="/admin",

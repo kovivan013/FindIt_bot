@@ -13,8 +13,6 @@ class BaseUser(BaseModel):
     mode: int = 0
     created_at: int = 0
     is_banned: bool = False
-    notifications: Dict[str, Any] = {}
-    status: int = 0
 
 
 class BannedUser(BaseModel):
@@ -95,4 +93,20 @@ class BaseAdmin(BaseModel):
     telegram_id: int = 0
     permissions: Dict[str, bool] = {}
     added_at: int = 0
+
+
+class BaseNotification(BaseModel):
+
+    notification_id: int = 0
+    preview: str = ""
+    text: str = ""
+    unread: bool = True
+    markup_type: int = 0
+
+
+class UserNotifications(BaseModel):
+
+    telegram_id: int = 0
+    details: Dict[str, Any] = {}
+    content: Dict[int, BaseNotification] = {}
 

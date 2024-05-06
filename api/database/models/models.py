@@ -54,14 +54,6 @@ class Users(Base):
         BigInteger,
         default=0
     )
-    notifications: Mapped[JSON] = mapped_column(
-        JSON,
-        default={}
-    )
-    status: Mapped[SmallInteger] = mapped_column(
-        SmallInteger,
-        default=0
-    )
 
     def as_model(self) -> Union[BaseUser]:
         return BaseUser().model_validate(
@@ -157,6 +149,9 @@ class Admins(Base):
         primary_key=True,
         index=True
     )
+    administrator: Mapped[BigInteger] = mapped_column(
+        BigInteger
+    )
     permissions: Mapped[JSON] = mapped_column(
         JSON,
         default={}
@@ -170,3 +165,20 @@ class Admins(Base):
         return BaseAdmin().model_validate(
             self.as_dict()
         )
+
+
+class Notifications(Base):
+
+    telegram_id: Mapped[BigInteger] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        index=True
+    )
+    details: Mapped[JSON] = mapped_column(
+        JSON,
+        default={}
+    )
+    content: Mapped[JSON] = mapped_column(
+        JSON,
+        default={}
+    )
