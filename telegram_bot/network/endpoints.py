@@ -5,7 +5,10 @@ class UserEndpoints:
     UPDATE_USER: str = "/{}"
     ADD_ANNOUNCEMENT: str = "/{}/add_announcement"
     GET_USER_ANNOUNCEMENTS: str = "/{}/announcements"
-    SEND_NOTIFICATION: str = "/{}/send_notification"
+    GET_NOTIFICATIONS: str = "/{}/notifications"
+    SEND_NOTIFICATION: str = "/{}/notifications"
+    GET_NOTIFICATION: str = "/{}/notifications/{}"
+    READ_NOTIFICATION: str = "/{}/notifications/{}/read"
 
 
 class AnnouncementEndpoints:

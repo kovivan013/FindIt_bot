@@ -5,7 +5,6 @@ from network.endpoints import (
     AnnouncementEndpoints,
     AdminEndpoints
 )
-from utils import utils
 from pydantic import BaseModel
 from typing import Union
 from network.request_classes import (
@@ -192,6 +191,74 @@ class UserAPI(
             auth,
             endpoint=endpoint,
             data=data.model_dump()
+        )
+
+    @classmethod
+    async def get_notifications(
+            cls,
+            auth: int,
+            *,
+            telegram_id: int
+    ) -> Union[DataStructure]:
+        endpoint: str = cls.__URL + cls.GET_NOTIFICATIONS.format(
+            telegram_id
+        )
+
+        return await cls._get_request(
+            auth,
+            endpoint=endpoint
+        )
+
+    @classmethod
+    async def send_notification(
+            cls,
+            auth: int,
+            *,
+            telegram_id: int,
+            data: dtos.SendNotificationDTO
+    ) -> Union[DataStructure]:
+        endpoint: str = cls.__URL + cls.SEND_NOTIFICATION.format(
+            telegram_id
+        )
+
+        return await cls._post_request(
+            auth,
+            endpoint=endpoint,
+            data=data.model_dump()
+        )
+
+    @classmethod
+    async def get_notification(
+            cls,
+            auth: int,
+            *,
+            telegram_id: int,
+            notification_id: int
+    ) -> Union[DataStructure]:
+        endpoint: str = cls.__URL + cls.GET_NOTIFICATION.format(
+            telegram_id, notification_id
+        )
+
+        return await cls._get_request(
+            auth,
+            endpoint=endpoint
+        )
+
+    @classmethod
+    async def read_notification(
+            cls,
+            auth: int,
+            *,
+            telegram_id: int,
+            notification_id: int
+    ) -> Union[DataStructure]:
+        endpoint: str = cls.__URL + cls.READ_NOTIFICATION.format(
+            telegram_id, notification_id
+        )
+
+        return await cls._patch_request(
+            auth,
+            endpoint=endpoint
         )
 
 
@@ -520,5 +587,3 @@ class OpenStreetMapAPI(API):
             }
 
         return {}
-
-

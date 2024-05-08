@@ -1,9 +1,12 @@
 import jwt
 
 from datetime import datetime
-from typing import Union
+from aiogram.types import Message, InlineKeyboardMarkup
+from common.classes import FSMActions
+from decorators.decorators import handle_error
+from typing import Union, Optional
 from pydantic import BaseModel
-from common.interfaces import OAuthStructure
+from common.interfaces import OAuthStructure, DataModel
 from aiogram.dispatcher.storage import FSMContext
 from utils.utils import timestamp
 from config import settings
@@ -59,12 +62,20 @@ class FSMStorageProxy:
 
         return result
 
-    async def data_model(
+    async def as_model(
             self,
             path: str,
             model: BaseModel
     ) -> Union[BaseModel]:
         return model().model_validate(
+            await self.get_data(path)
+        )
+
+    async def data_model(
+            self,
+            path: str
+    ) -> Union[BaseModel]:
+        return DataModel(
             await self.get_data(path)
         )
 
@@ -122,7 +133,60 @@ class FSMStorageProxy:
                 )
 
 
+class MessageProxy(FSMStorageProxy):
 
+    @handle_error
+    async def edit_text(
+            self,
+            text: str,
+            parse_mode: Optional[str] = None,
+            entities: Optional[list] = None,
+            disable_web_page_preview: Optional[bool] = None,
+            reply_markup: Optional[InlineKeyboardMarkup] = None,
+    ) -> Union[Message]:
+        return await (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).message.edit_text(
+            text=text,
+            parse_mode=parse_mode,
+            entities=entities,
+            disable_web_page_preview=disable_web_page_preview,
+            reply_markup=reply_markup
+        )
+
+    @handle_error
+    async def edit_caption(
+            self,
+            caption: str,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[list] = None,
+            reply_markup: Optional[InlineKeyboardMarkup] = None,
+    ) -> Union[Message]:
+        return await (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).message.edit_caption(
+            caption=caption,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+            reply_markup=reply_markup
+        )
+
+    @handle_error
+    async def edit_reply_markup(
+            self,
+            reply_markup: InlineKeyboardMarkup
+    ) -> Union[Message]:
+        return await (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).message.edit_reply_markup(
+            reply_markup=reply_markup
+        )
 
 
 

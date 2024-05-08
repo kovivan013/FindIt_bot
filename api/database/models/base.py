@@ -1,4 +1,5 @@
 from typing import Any, Dict, Union
+from schemas.base import DataModel
 from pydantic import BaseModel
 from string import ascii_uppercase
 
@@ -39,10 +40,13 @@ class Base(DeclarativeBase):
             attr: value for attr, value in self.__dict__.items() if not attr.startswith('_')
         }
 
+    def as_data_model(self) -> Union[DataModel]:
+        return DataModel(
+            self.as_dict()
+        )
+
     def validate(self, obj: dict):
-        print(vars(self))
         data = self.as_dict()
-        print(data, obj)
         for i, v in obj.items():
             if i in data:
                 setattr(

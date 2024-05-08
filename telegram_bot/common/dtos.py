@@ -81,3 +81,11 @@ class GetAdminsDTO(BaseModel):
     page: int = 0
 
 
+class SendNotificationDTO(BaseModel):
+
+    preview: str = ""
+    text: str = ""
+    markup_type: int = 0
+
+
+

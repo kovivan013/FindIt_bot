@@ -1,5 +1,4 @@
 from functools import wraps
-from classes.api_requests import UserAPI, AdminAPI
 from aiogram.dispatcher.storage import FSMContext
 from aiogram.types import Message
 from typing import Any, Callable
@@ -16,6 +15,8 @@ class CheckRegistered:
 
             @wraps(func)
             async def wrapper(*args, **kwargs) -> Any:
+                from classes.api_requests import UserAPI
+
                 state: FSMContext = kwargs["state"]
                 response = await UserAPI.get_user(
                     0, telegram_id=state.user
@@ -55,6 +56,20 @@ def private_message(func: Callable) -> Callable:
             return await func(
                 *args, **kwargs
             )
+
+    return wrapper
+
+
+def handle_error(func: Callable) -> Callable:
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs) -> Any:
+        try:
+            await func(
+                *args, **kwargs
+            )
+        except:
+            print(f"WARNING | Error during {func} function execution")
 
     return wrapper
 

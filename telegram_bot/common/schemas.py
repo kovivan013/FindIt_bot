@@ -63,3 +63,13 @@ class BaseAnnouncement(AnnouncementDetails):
     owner_id: int = 0
     mode: int = 0
     status: int = 0
+
+
+class BaseNotification(BaseModel):
+
+    id_: int = 0
+    preview: str = ""
+    text: str = ""
+    unread: bool = True
+    date: int = 0
+    markup_type: int = 0

@@ -97,10 +97,11 @@ class BaseAdmin(BaseModel):
 
 class BaseNotification(BaseModel):
 
-    notification_id: int = 0
+    id_: int = 0
     preview: str = ""
     text: str = ""
     unread: bool = True
+    date: int = 0
     markup_type: int = 0
 
 

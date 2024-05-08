@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 from datetime import datetime
 from typing import Union, AsyncIterable
 from starlette import status as HTTPStatus
-from sqlalchemy import select
+from sqlalchemy import select, update, BigInteger
 from sqlalchemy.ext.asyncio import (
     AsyncSession
 )
@@ -33,7 +33,8 @@ from common.dto.announcement import (
 from schemas.schemas import (
     BaseUser,
     BaseAnnouncement,
-    UserAnnouncementsResponse
+    UserAnnouncementsResponse,
+    BaseNotification
 )
 from schemas.classes import (
     UserEndpoints,
@@ -349,8 +350,16 @@ async def get_user_announcements(
 
 @user_router.get(UserEndpoints.GET_NOTIFICATIONS)
 async def get_notifications(
-        telegram_id: int,
         request: Request,
+        telegram_id: int,
+        limit: int = Query(
+            1,
+            gt=0
+        ),
+        page: int = Query(
+            0,
+            gt=-1
+        ),
         session: AsyncSession = Depends(
             core.create_sa_session
         )
@@ -366,28 +375,37 @@ async def get_notifications(
         request
     )
 
-    user = await session.get(
-        Users,
+    query_result = await session.get(
+        Notifications,
         telegram_id
     )
 
-    if not user:
+    if not query_result:
         return await Reporter(
             exception=exceptions.ItemNotFound,
             message="User not found"
         )._report()
 
-    notifications = await session.get(
-        Notifications,
-        telegram_id
-    )
+    notifications: dict = {}
+    offset: int = page * limit
+
+    for i, (v, k) in enumerate(query_result.content.items()):
+        if i in range(
+                offset,
+                offset + limit
+        ):
+            notifications.update(
+                {
+                    v: k
+                }
+            )
 
     await session.close()
 
     result.data.update(
         {
-            "notifications": notifications.content,
-            "details": notifications.details
+            "notifications": notifications,
+            "details": query_result.details
         }
     )
     result._status = HTTPStatus.HTTP_200_OK
@@ -410,6 +428,45 @@ async def send_notification(
     )
     result = DataStructure()
 
+    notifications = await session.get(
+        Notifications,
+        telegram_id
+    )
+
+    if not notifications:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="User not found"
+        )._report()
+
+    notification = BaseNotification().model_validate(
+        parameters.model_dump()
+    )
+    notification.id_ = notifications.details["last_id"] + 1
+    notification.date = utils.timestamp()
+
+    notifications.content[notification.id_] = notification.model_dump()
+    notifications.details["last_id"] = notification.id_
+
+    await session.execute(
+        update(
+            Notifications
+        ).filter(
+            Notifications.telegram_id == telegram_id
+        ).values(
+            {
+                "details": notifications.details,
+                "content": notifications.content
+            }
+        )
+    )
+
+    await session.commit()
+    await session.close()
+
+    result.message = "The notification was sent successfully"
+    result._status = HTTPStatus.HTTP_200_OK
+
     return result
 
 
@@ -428,6 +485,33 @@ async def get_notification(
     )
     result = DataStructure()
 
+    await OAuth2._check_ownership(
+        telegram_id,
+        request
+    )
+
+    notifications = await session.get(
+        Notifications,
+        telegram_id
+    )
+
+    if not notifications:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="User not found"
+        )._report()
+
+    if notifications.details["last_id"] > notification_id:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="Notification not found"
+        )
+
+    result.data = notifications.content[
+        notification_id
+    ]
+    result._status = HTTPStatus.HTTP_200_OK
+
     return result
 
 
@@ -445,6 +529,46 @@ async def read_notification(
         session
     )
     result = DataStructure()
+
+    await OAuth2._check_ownership(
+        telegram_id,
+        request
+    )
+
+    notifications = await session.get(
+        Notifications,
+        telegram_id
+    )
+
+    if not notifications:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="User not found"
+        )._report()
+
+    if notification_id > notifications.details["last_id"] or notification_id < 1:
+        return await Reporter(
+            exception=exceptions.ItemNotFound,
+            message="Notification not found"
+        )._report()
+
+    notifications.content[f"{notification_id}"]["unread"] = False
+
+    await session.execute(
+        update(
+            Notifications
+        ).filter(
+            Notifications.telegram_id == telegram_id
+        ).values(
+            {
+                "content": notifications.content
+            }
+        )
+    )
+    await session.commit()
+    await session.close()
+
+    result._status = HTTPStatus.HTTP_200_OK
 
     return result
 

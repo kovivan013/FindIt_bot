@@ -142,9 +142,18 @@ class OAuth2:
             telegram_id
         )
 
-        await session.close()
-
         if not banned_user:
+            result._status = status.HTTP_404_NOT_FOUND
+
+            return result
+
+        if banned_user.until <= timestamp():
+
+            await session.delete(
+                banned_user
+            )
+            await session.commit()
+
             result._status = status.HTTP_404_NOT_FOUND
 
             return result

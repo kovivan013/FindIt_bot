@@ -50,7 +50,6 @@ class DataModel:
         )
 
     def __repr__(self):
-        print("used")
         params = ', '.join(
             f'{attr}: {value!r}'
             for attr, value in self.__dict__.items()

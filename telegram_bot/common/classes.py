@@ -44,6 +44,7 @@ class Symbols:
 
 class FSMActions:
 
+    APP_CONFIG: str = "/app_config"
     CREATE_USER: str = "/create_user"
     UPDATE_USER: str = "/update_user"
     ADD_ANNOUNCEMENT: str = "/add_announcement"

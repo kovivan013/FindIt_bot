@@ -14,7 +14,10 @@ from config import dp, bot
 from common import dtos
 from common.interfaces import DataStructure
 from common.classes import ServicePhotos, Symbols, FSMActions
-from classes.utils_classes import FSMStorageProxy
+from classes.utils_classes import (
+    FSMStorageProxy,
+    MessageProxy
+)
 from classes.api_requests import UserAPI
 from utils import utils
 from keyboards.keyboards import (
@@ -49,11 +52,15 @@ async def input_username(
 ) -> None:
     await MainMenuStates.input_username.set()
     await event.message.delete()
-    await event.message.answer_photo(
-        photo=utils.get_photo(
-            ServicePhotos.USERNAME
-        ),
-        caption="Уведіть ваш нікнейм"
+
+    await FSMStorageProxy(state).update_data(
+        FSMActions.APP_CONFIG,
+        message=await event.message.answer_photo(
+            photo=utils.get_photo(
+                ServicePhotos.USERNAME
+            ),
+            caption="Уведіть ваш нікнейм"
+        )
     )
 
 async def check_username(
@@ -65,18 +72,34 @@ async def check_username(
     if len(event.text) <= 50:
         for i in event.text:
             if i not in Symbols.UKRAINIAN_ALPHABET + Symbols.ENGLISH_ALPHABET + " ":
-                break
+                return await MessageProxy(state).edit_caption(
+                    caption="У нікнеймі можна використовувати лише літери українського та англійського алфавітів"
+                )
         else:
-            print(event.reply_to_message)
             return await input_description(
                 event, state=state
             )
+
+    return await MessageProxy(state).edit_caption(
+        caption="Довжина нікнейму не повинна перевищувати 50 символів"
+    )
+
 
 async def input_description(
         event: Message,
         state: FSMContext
 ) -> None:
-    pass
+    await MainMenuStates.input_description.set()
+
+    await FSMStorageProxy(state).update_data(
+        FSMActions.APP_CONFIG,
+        message=await event.message.answer_photo(
+            photo=utils.get_photo(
+                ServicePhotos.USERNAME
+            ),
+            caption="Уведіть ваш нікнейм"
+        )
+    )
 
 async def check_description(
         event: Message,
