@@ -1,4 +1,4 @@
-from string import ascii_letters
+from string import ascii_letters, digits
 
 class AdminPermissions:
 
@@ -34,12 +34,14 @@ class ServicePhotos:
     USERNAME: str = "username.png"
     USER_ANNOUNCEMENTS: str ="user_announcements.png"
     IS_YOUR_THING: str = "is_your_thing.png"
+    UNKNOWN_ANNOUNCEMENT: str = "unknown_announcement.png"
 
 
 class Symbols:
 
     UKRAINIAN_ALPHABET: str = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ"
     ENGLISH_ALPHABET: str = ascii_letters
+    DIGITS: str = digits
 
 
 class FSMActions:

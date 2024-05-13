@@ -7,14 +7,14 @@ class UserCreate(BaseModel):
     telegram_id: int = 0
     username: str = ""
     description: Optional[str] = ""
-    phone_number: int = 0
+    phone_number: str = "0"
 
 
 class UserUpdate(BaseModel):
 
     username: Optional[str] = ""
     description: Optional[str] = ""
-    phone_number: Optional[int] = 0
+    phone_number: Optional[str] = "0"
 
 
 class NotificationSend(BaseModel):

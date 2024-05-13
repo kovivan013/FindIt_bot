@@ -43,9 +43,9 @@ class Users(Base):
         JSON,
         default={}
     )
-    phone_number: Mapped[Optional[BigInteger]] = mapped_column(
-        BigInteger,
-        default=0
+    phone_number: Mapped[Optional[String]] = mapped_column(
+        String,
+        default="0"
     )
     mode: Mapped[SmallInteger] = mapped_column(
         SmallInteger

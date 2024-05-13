@@ -65,7 +65,7 @@ def handle_error(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Any:
         try:
-            await func(
+            return await func(
                 *args, **kwargs
             )
         except:

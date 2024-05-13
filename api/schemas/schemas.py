@@ -9,7 +9,7 @@ class BaseUser(BaseModel):
     username: str = ""
     description: str = ""
     badges: Dict[str, Any] = {}
-    phone_number: int = 0
+    phone_number: str = "0"
     mode: int = 0
     created_at: int = 0
     is_banned: bool = False

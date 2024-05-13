@@ -1,3 +1,4 @@
+from . import debug
 from config import dp
 
 from .admin import (
@@ -19,5 +20,8 @@ from .user import (
     support
 )
 
+
 def register_events():
     signup.register(dp)
+    dashboard.register(dp)
+    debug.register(dp)

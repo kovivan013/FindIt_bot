@@ -1,7 +1,7 @@
 import jwt
 
 from datetime import datetime
-from aiogram.types import Message, InlineKeyboardMarkup
+from aiogram.types import Message, InlineKeyboardMarkup, InputMedia
 from common.classes import FSMActions
 from decorators.decorators import handle_error
 from typing import Union, Optional
@@ -62,7 +62,7 @@ class FSMStorageProxy:
 
         return result
 
-    async def as_model(
+    async def collect_model(
             self,
             path: str,
             model: BaseModel
@@ -176,6 +176,21 @@ class MessageProxy(FSMStorageProxy):
         )
 
     @handle_error
+    async def edit_media(
+            self,
+            media: InputMedia,
+            reply_markup: Optional[InlineKeyboardMarkup] = None
+    ):
+        return await (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).message.edit_media(
+            media=media,
+            reply_markup=reply_markup
+        )
+
+    @handle_error
     async def edit_reply_markup(
             self,
             reply_markup: InlineKeyboardMarkup
@@ -187,6 +202,14 @@ class MessageProxy(FSMStorageProxy):
         ).message.edit_reply_markup(
             reply_markup=reply_markup
         )
+
+    @handle_error
+    async def delete_message(self) -> bool:
+        return await (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).message.delete()
 
 
 
