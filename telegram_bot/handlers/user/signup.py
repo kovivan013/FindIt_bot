@@ -202,7 +202,7 @@ async def back_to_start_menu(
         state: FSMContext
 ) -> None:
     await start_menu(
-        event.message, state
+        event.message, state=state
     )
 
 @check_registered()
@@ -213,19 +213,22 @@ async def start_menu(
 ) -> None:
     await MainMenuStates.start_menu.set()
     await MessageProxy(state).delete_message()
-    user = await UserAPI.get_user(
-        event.from_user.id,
-        telegram_id=event.from_user.id
+
+    response = await UserAPI.get_user(
+        state.user,
+        telegram_id=state.user
     )
+
     await FSMStorageProxy(state).update_data(
         FSMActions.APP_CONFIG,
         message=await event.answer_photo(
             photo=utils.get_photo(
                 ServicePhotos.LOGO
             ),
-            caption=f"👋 Вітаємо, {user.data.username}",
+            caption=f"👋 Вітаємо, {response.data.username}",
             reply_markup=MainMenu.keyboard()
-        )
+        ),
+        deletion_list=[]
     )
 
 

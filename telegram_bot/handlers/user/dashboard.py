@@ -12,6 +12,7 @@ from aiogram.types import (
     ContentTypes,
     ForceReply
 )
+from . import signup
 
 from config import dp, bot
 from common import dtos
@@ -27,11 +28,13 @@ from utils import utils
 from keyboards.keyboards import (
     MainMenu,
     DashboardMenu,
-    YesOrNo
+    YesOrNo,
+    Controls
 )
 from states.states import (
     MainMenuStates,
-    DashboardStates
+    DashboardStates,
+    GetAnnouncementStates
 )
 from common.schemas import BaseUser
 from decorators.decorators import (
@@ -46,6 +49,7 @@ async def dashboard(
         state: FSMContext
 ) -> None:
     await DashboardStates.input_query.set()
+    await MessageProxy(state).clear_deletion_list()
     await event.message.edit_media(
         media=InputMedia(
             media=utils.get_photo(
@@ -69,7 +73,7 @@ async def select_mode(
     await MessageProxy(state).edit_caption(
         caption=f"Які речі Ви шукаєте за запитом *{event.text}*?",
         parse_mode="Markdown",
-        reply_markup=DashboardMenu.keyboard()
+        reply_markup=DashboardMenu.options_keyboard()
     )
 
 async def collect_result(
@@ -83,8 +87,10 @@ async def collect_result(
         mode=DashboardMenu.modes[
             event.data
         ],
+        page=0,
         limit=2
     )
+
     response = await AnnouncementsAPI.get_announcements(
         state.user,
         **(
@@ -94,22 +100,111 @@ async def collect_result(
         )
     )
 
-    if response._success:
-        for i, announcement in response.data.announcements.as_dict().items():
-            caption = f"{announcement.title}\n\n" \
-                      f"" \
-                      f"📍 *{announcement.location.place_name}*\n" \
-                      f"⌚ *{utils.to_date(announcement.timestamp)}*"
+    await storage.set_data(
+        FSMActions.DOCUMENT,
+        data=response.data.document.as_dict()
+    )
 
+    if response._success:
+
+        await event.message.edit_caption(
+            caption=f"За Вашим запитом було знайдено *{response.data.document.pages * 2}+* оголошень.",
+            parse_mode="Markdown",
+            reply_markup=DashboardMenu.keyboard(
+                page=response.data.document.page + 1,
+                pages=response.data.document.pages
+            )
+        )
+
+        for i, announcement in response.data.announcements.as_dict().items():
+
+            await MessageProxy(state).update_deletion_list(
+                await event.message.answer_photo(
+                    photo=blob.get_preview(
+                        announcement.announcement_id
+                    ),
+                    caption=utils.announcement_caption(
+                        announcement
+                    ),
+                    reply_markup=DashboardMenu.announcement_keyboard(
+                        announcement.announcement_id
+                    ),
+                    parse_mode="Markdown",
+                    disable_notification=True
+                )
+            )
+
+
+async def update_page(
+        event: CallbackQuery,
+        state: FSMContext
+) -> None:
+    storage = FSMStorageProxy(state)
+    pages = (
+        await storage.data_model(
+            FSMActions.DOCUMENT
+        )
+    ).pages
+
+    next_page: dict = {
+        Controls.backward_callback: lambda page = (
+            await storage.data_model(
+                FSMActions.GET_ANNOUNCEMENTS
+            )
+        ).page: page - 1 if page > 0 else 0,
+        Controls.forward_callback: lambda page = (
+            await storage.data_model(
+                FSMActions.GET_ANNOUNCEMENTS
+            )
+        ).page: page + 1 if page < pages else pages,
+    }
+
+    await storage.update_data(
+        FSMActions.GET_ANNOUNCEMENTS,
+        page=next_page[
+            event.data
+        ]()
+    )
+
+    response = await AnnouncementsAPI.get_announcements(
+        state.user,
+        **(
+            await storage.get_data(
+                FSMActions.GET_ANNOUNCEMENTS
+            )
+        )
+    )
+
+    await storage.set_data(
+        FSMActions.DOCUMENT,
+        data=response.data.document.as_dict()
+    )
+
+    await MessageProxy(state).clear_deletion_list()
+    await event.message.edit_reply_markup(
+        reply_markup=DashboardMenu.keyboard(
+            page=response.data.document.page + 1,
+            pages=response.data.document.pages
+        )
+    )
+
+    for i, announcement in response.data.announcements.as_dict().items():
+
+        await MessageProxy(state).update_deletion_list(
             await event.message.answer_photo(
                 photo=blob.get_preview(
                     announcement.announcement_id
                 ),
-                caption=caption,
+                caption=utils.announcement_caption(
+                    announcement
+                ),
+                reply_markup=DashboardMenu.announcement_keyboard(
+                    announcement.announcement_id
+                ),
                 parse_mode="Markdown",
                 disable_notification=True
             )
-
+        )
 
 async def filters_menu(
         event: CallbackQuery,
@@ -117,10 +212,39 @@ async def filters_menu(
 ) -> None:
     pass
 
-# class Filters:
-#
-#     async def
+async def get_announcement(
+        event: CallbackQuery,
+        state: FSMContext
+) -> None:
+    announcement_id = event.data.split("_")[0]
+    response = await AnnouncementsAPI.get_announcement(
+        state.user,
+        announcement_id=announcement_id
+    )
 
+    if response._success:
+
+        await GetAnnouncementStates.preview.set()
+        await MessageProxy(state).clear_deletion_list()
+        return await MessageProxy(state).edit_media(
+            media=InputMedia(
+                media=blob.get_preview(
+                    announcement_id
+                ),
+                caption=utils.announcement_details(
+                    response.data
+                ),
+                parse_mode="Markdown"
+            ),
+            reply_markup=DashboardMenu.preview_keyboard(
+                response.data.mode
+            )
+        )
+
+    await event.answer(
+        text=f"❌ {response.message}",
+        show_alert=True
+    )
 
 def register(
         dp: Dispatcher
@@ -138,4 +262,35 @@ def register(
             ]
         ),
         state=DashboardStates.input_query
+    )
+    dp.register_callback_query_handler(
+        update_page,
+        Text(
+            equals=[
+                DashboardMenu.backward_callback,
+                DashboardMenu.forward_callback
+            ]
+        ),
+        state=DashboardStates.query_result
+    )
+    dp.register_callback_query_handler(
+        signup.back_to_start_menu,
+        Text(
+            equals=YesOrNo.cancel_callback
+        ),
+        state=DashboardStates.input_query
+    )
+    dp.register_callback_query_handler(
+        dashboard,
+        Text(
+            equals=DashboardMenu.another_query_callback
+        ),
+        state=DashboardStates.query_result
+    )
+    dp.register_callback_query_handler(
+        get_announcement,
+        Text(
+            endswith=DashboardMenu.detail_callback
+        ),
+        state=DashboardStates.query_result
     )

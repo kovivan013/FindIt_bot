@@ -58,6 +58,7 @@ class FSMActions:
     GET_USERS: str = "/get_users"
     GET_BANNED_USERS: str = "/get_banned_users"
     GET_ADMINS: str = "/get_admins"
+    DOCUMENT: str = "/document"
 
 
 class AnnouncementStatus:

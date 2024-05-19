@@ -155,7 +155,7 @@ class Controls:
     ) -> Union[InlineKeyboardMarkup]:
         keyboard: list = []
 
-        if page > 0:
+        if page > 1:
             keyboard.append(
                 {
                     "text": cls.short_backward,
@@ -444,7 +444,15 @@ class DashboardMenu(
     found_things: str = "💡 Знайдені речі"
     filters: str = "🎛️ Фільтри"
     another_query: str = "🗺 Шукати інше"
+    detail: str = "👉 Детальніше"
+    lost: str = "📞 Я загубив річ"
+    found: str = "🔍 Я знайшов річ"
 
+    lost_callback: str = "lost_callback"
+    found_callback: str = "found_callback"
+    detail_callback: str = "detail_callback"
+    contact_callback: str = "contact_callback"
+    call_callback: str = "call_callback"
     lost_things_callback: str = "lost_things_callback"
     found_things_callback: str = "found_things_callback"
     filters_callback: str = "filters_callback"
@@ -456,7 +464,7 @@ class DashboardMenu(
     }
 
     @classmethod
-    def keyboard(
+    def options_keyboard(
             cls,
             selected_option: int = None
     ) -> Union[InlineKeyboardMarkup]:
@@ -474,6 +482,89 @@ class DashboardMenu(
         )
 
         return keyboard
+
+    @classmethod
+    def keyboard(
+            cls,
+            page: int,
+            pages: int
+    ) -> Union[InlineKeyboardMarkup]:
+        keyboard = default_inline_keyboard(
+            row_width=3
+        )
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.add_announcement,
+                callback_data=cls.add_announcement_callback
+            )
+        )
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.another_query,
+                callback_data=cls.another_query_callback
+            ),
+            InlineKeyboardButton(
+                text=cls.filters,
+                callback_data=cls.filters_callback
+            )
+        )
+
+        keyboard.add(
+            *cls.pages_keyboard(
+                page=page,
+                pages=pages
+            )
+        )
+
+        return keyboard
+
+    @classmethod
+    def announcement_keyboard(
+            cls,
+            announcement_id: str
+    ) -> Union[InlineKeyboardMarkup]:
+        keyboard = default_inline_keyboard()
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.detail,
+                callback_data=f"{announcement_id}_{cls.detail_callback}"
+            )
+        )
+
+        return keyboard
+
+    @classmethod
+    def preview_keyboard(
+            cls,
+            mode: int
+    ) -> Union[InlineKeyboardMarkup]:
+        keyboard = default_inline_keyboard()
+        buttons: dict = {
+            0: InlineKeyboardButton(
+                text=cls.found,
+                callback_data=cls.found_callback
+            ),
+            1: InlineKeyboardButton(
+                text=cls.lost,
+                callback_data=cls.lost_callback
+            )
+        }
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.backward,
+                callback_data=cls.backward_callback
+            ),
+            buttons[
+                mode
+            ]
+        )
+
+        return keyboard
+
+
 
 
 

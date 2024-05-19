@@ -114,7 +114,32 @@ class FSMStorageProxy:
 
         return kwargs
 
-    async def clear_partial_data(
+    async def set_data(
+            self,
+            path: str,
+            /,
+            data: dict
+    ) -> dict:
+        keys = self.__collect_path(path)
+        update_path: dict = {}
+
+        async with self.state.proxy() as session:
+            update_path.update({
+                keys[-1]: data
+            })
+
+            for i in reversed(keys[:-1]):
+                update_path = {
+                    i: update_path
+                }
+
+            session.update(
+                update_path
+            )
+
+        return data
+
+    async def clear_data(
             self,
             path: str
     ) -> None:
@@ -132,7 +157,7 @@ class FSMStorageProxy:
                     update_path
                 )
 
-
+import colorama
 class MessageProxy(FSMStorageProxy):
 
     @handle_error
@@ -210,6 +235,92 @@ class MessageProxy(FSMStorageProxy):
                 FSMActions.APP_CONFIG
             )
         ).message.delete()
+
+    @handle_error
+    async def update_deletion_list(
+            self,
+            message: Message
+    ) -> None:
+        deletion_list = (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).deletion_list
+
+        deletion_list.append(
+            message
+        )
+
+        await self.update_data(
+            FSMActions.APP_CONFIG,
+            deletion_list=deletion_list
+        )
+
+    @handle_error
+    async def clear_deletion_list(self) -> None:
+        deletion_list = (
+            await self.data_model(
+                FSMActions.APP_CONFIG
+            )
+        ).deletion_list
+
+        for message in deletion_list:
+
+            success = False
+
+            try:
+                success = await message.delete()
+            finally:
+                if success:
+                    deletion_list = deletion_list[1:]
+
+        await self.update_data(
+            FSMActions.APP_CONFIG,
+            deletion_list=deletion_list
+        )
+
+
+class Dashboard(FSMStorageProxy):
+
+    pass
+    # async def send_announcements(self) -> None:
+    #
+    #     response = await AnnouncementsAPI.get_announcements(
+    #         state.user,
+    #         **(
+    #             await storage.get_data(
+    #                 FSMActions.GET_ANNOUNCEMENTS
+    #             )
+    #         )
+    #     )
+    #
+    #     if response._success:
+    #
+    #         await event.message.edit_caption(
+    #             caption=f"За Вашим запитом було знайдено *{response.data.document.pages * 2 - 1}+* оголошень.",
+    #             parse_mode="Markdown",
+    #             reply_markup=DashboardMenu.keyboard(
+    #                 page=response.data.document.page + 1,
+    #                 pages=response.data.document.pages
+    #             )
+    #         )
+    #
+    #         for i, announcement in response.data.announcements.as_dict().items():
+    #             caption = f"{announcement.title}\n\n" \
+    #                       f"" \
+    #                       f"📍 *{announcement.location.place_name}*\n" \
+    #                       f"⌚ *{utils.to_date(announcement.timestamp)}*"
+    #
+    #             await MessageProxy(state).update_deletion_list(
+    #                 await event.message.answer_photo(
+    #                     photo=blob.get_preview(
+    #                         announcement.announcement_id
+    #                     ),
+    #                     caption=caption,
+    #                     parse_mode="Markdown",
+    #                     disable_notification=True
+    #                 )
+    #             )
 
 
 

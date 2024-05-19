@@ -16,3 +16,9 @@ class DashboardStates(StatesGroup):
     input_query = State()
     query_result = State()
     filters = State()
+
+
+class GetAnnouncementStates(StatesGroup):
+
+    preview = State()
+

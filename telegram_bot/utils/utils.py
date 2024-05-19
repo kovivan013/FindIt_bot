@@ -3,6 +3,7 @@ import jwt
 
 from datetime import datetime
 import datetime as datetime_module
+from common.schemas import BaseAnnouncement
 from common.interfaces import OAuthStructure
 from config import settings
 
@@ -58,5 +59,37 @@ def get_photo(
     )
 
 
+def announcement_caption(
+        announcement: BaseAnnouncement
+) -> str:
+    return f"{announcement.title}\n\n" \
+           f"" \
+           f"📍 *{announcement.location.place_name}*\n" \
+           f"⌚ *{to_date(announcement.timestamp)}*"
 
+def announcement_details(
+        announcement: BaseAnnouncement
+) -> str:
+    n = "\n"
+    modes: dict = {
+        0: {
+            0: "Загублено",
+            1: "Знайдено"
+        },
+        1: {
+            0: "загублену",
+            1: "знайдену"
+        }
+    }
 
+    return f"{modes[0][announcement.mode]} *{announcement.title}*\n\n" \
+           f"" \
+           f"{announcement.description}\n\n" \
+           f"" \
+           f"Інформація про {modes[1][announcement.mode]} річ:\n\n" \
+           f"📅 {to_date(announcement.timestamp, with_time=True)}\n" \
+           f"🗺 {announcement.location.place_type} {announcement.location.place_name}\n" \
+           f"" \
+           f"{f'{n}#' + ' #'.join(announcement.tags) + f'{n}{n}' if announcement.tags else n}" \
+           f"" \
+           f"🌟 *Вам знайома ця річ?* Про натисніть кнопку нижче."
