@@ -38,6 +38,28 @@ class DataModel:
             attr: value for attr, value in self.__dict__.items() if not attr.startswith('_')
         }
 
+    def model_dump(self) -> Dict[str, Any]:
+        data: dict = {}
+
+        for attr, value in self.__dict__.items():
+            if not attr.startswith("_"):
+                if isinstance(value, dict):
+                    data.update({
+                        attr: DataModel(
+                            value
+                        ).model_dump()
+                    })
+                elif isinstance(value, DataModel):
+                    data.update({
+                        attr: value.model_dump()
+                    })
+                else:
+                    data.update({
+                        attr: value
+                    })
+
+        return data
+
 
 class DataStructure(BaseModel):
 

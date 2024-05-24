@@ -14,7 +14,6 @@ from .user import (
     signup,
     info_about,
     dashboard,
-    marketplace,
     user_announcements,
     notifications,
     support

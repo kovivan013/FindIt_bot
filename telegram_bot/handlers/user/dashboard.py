@@ -100,6 +100,10 @@ async def collect_result(
         )
     )
 
+    await storage.update_data(
+        FSMActions.COLLECTED_ANNOUNCEMENTS,
+        p0=response.data.announcements.model_dump()
+    )
     await storage.set_data(
         FSMActions.DOCUMENT,
         data=response.data.document.as_dict()
@@ -139,6 +143,7 @@ async def update_page(
         event: CallbackQuery,
         state: FSMContext
 ) -> None:
+    await DashboardStates.query_result.set()
     storage = FSMStorageProxy(state)
     pages = (
         await storage.data_model(
@@ -147,48 +152,69 @@ async def update_page(
     ).pages
 
     next_page: dict = {
-        Controls.backward_callback: lambda page = (
+        Controls.previous_page_callback: lambda page = (
             await storage.data_model(
                 FSMActions.GET_ANNOUNCEMENTS
             )
         ).page: page - 1 if page > 0 else 0,
-        Controls.forward_callback: lambda page = (
+        Controls.next_page_callback: lambda page = (
             await storage.data_model(
                 FSMActions.GET_ANNOUNCEMENTS
             )
         ).page: page + 1 if page < pages else pages,
+        Controls.backward_callback: lambda page = (
+            await storage.data_model(
+                FSMActions.GET_ANNOUNCEMENTS
+            )
+        ).page: page
     }
+
+    page = next_page[
+        event.data
+    ]()
 
     await storage.update_data(
         FSMActions.GET_ANNOUNCEMENTS,
-        page=next_page[
-            event.data
-        ]()
+        page=page
     )
 
-    response = await AnnouncementsAPI.get_announcements(
-        state.user,
-        **(
-            await storage.get_data(
-                FSMActions.GET_ANNOUNCEMENTS
+    collected_announcements = await storage.data_model(
+        FSMActions.COLLECTED_ANNOUNCEMENTS
+    )
+
+    if (page_key := f"p{page}") in collected_announcements.as_dict():
+        announcements = collected_announcements.as_dict()[page_key]
+    else:
+        response = await AnnouncementsAPI.get_announcements(
+            state.user,
+            **(
+                await storage.get_data(
+                    FSMActions.GET_ANNOUNCEMENTS
+                )
             )
         )
-    )
+        await storage.update_data(
+            FSMActions.COLLECTED_ANNOUNCEMENTS,
+            **{
+                page_key: response.data.announcements.model_dump()
+            }
+        )
+        announcements = response.data.announcements
 
-    await storage.set_data(
-        FSMActions.DOCUMENT,
-        data=response.data.document.as_dict()
-    )
+        await storage.set_data(
+            FSMActions.DOCUMENT,
+            data=response.data.document.as_dict()
+        )
 
     await MessageProxy(state).clear_deletion_list()
     await event.message.edit_reply_markup(
         reply_markup=DashboardMenu.keyboard(
-            page=response.data.document.page + 1,
-            pages=response.data.document.pages
+            page=page + 1,
+            pages=pages
         )
     )
 
-    for i, announcement in response.data.announcements.as_dict().items():
+    for i, announcement in announcements.as_dict().items():
 
         await MessageProxy(state).update_deletion_list(
             await event.message.answer_photo(
@@ -267,11 +293,18 @@ def register(
         update_page,
         Text(
             equals=[
-                DashboardMenu.backward_callback,
-                DashboardMenu.forward_callback
+                DashboardMenu.previous_page_callback,
+                DashboardMenu.next_page_callback
             ]
         ),
         state=DashboardStates.query_result
+    )
+    dp.register_callback_query_handler(
+        update_page,
+        Text(
+            equals=DashboardMenu.backward_callback
+        ),
+        state=GetAnnouncementStates.preview
     )
     dp.register_callback_query_handler(
         signup.back_to_start_menu,

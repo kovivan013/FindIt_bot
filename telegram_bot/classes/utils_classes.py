@@ -47,16 +47,44 @@ class FSMStorageProxy:
     ) -> list:
         return [i for i in path.split("/") if i]
 
+    def __update(
+            self,
+            base: dict,
+            data: dict
+    ):
+        for i, v in data.items():
+            if all([
+                isinstance(
+                    v, dict
+                ),
+                i in base,
+                isinstance(
+                    base.get(
+                        i, None
+                    ), dict
+                )
+            ]):
+                self.__update(
+                    base.setdefault(
+                        i, {}
+                    ),
+                    v
+                )
+            else:
+                base[i] = v
+
+        return base
+
     async def get_data(
             self,
             path: str
     ) -> dict:
         keys = self.__collect_path(path)
-        result: dict = {}
 
         async with self.state.proxy() as session:
+            result = session
             for i in keys:
-                result = session.setdefault(
+                result = result.setdefault(
                     i, {}
                 )
 
@@ -74,7 +102,7 @@ class FSMStorageProxy:
     async def data_model(
             self,
             path: str
-    ) -> Union[BaseModel]:
+    ) -> Union[DataModel]:
         return DataModel(
             await self.get_data(path)
         )
@@ -108,7 +136,8 @@ class FSMStorageProxy:
                     i: update_path
                 }
 
-            session.update(
+            session = self.__update(
+                session,
                 update_path
             )
 
@@ -157,7 +186,7 @@ class FSMStorageProxy:
                     update_path
                 )
 
-import colorama
+
 class MessageProxy(FSMStorageProxy):
 
     @handle_error

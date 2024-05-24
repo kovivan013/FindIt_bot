@@ -131,21 +131,23 @@ class YesOrNo:
 
 class Controls:
 
-    forward: str = f"Вперед ▶"
-    backward: str = f"◀ Назад"
-    close: str = f"Зачинити ✖"
+    forward: str = "Вперед ▶"
+    backward: str = "◀ Назад"
+    close: str = "Зачинити ✖"
 
-    plus: str = f"➕"
-    minus: str = f"➖"
+    plus: str = "➕"
+    minus: str = "➖"
 
-    short_forward: str = f"▶"
-    short_backward: str = f"◀"
+    short_forward: str = "▶"
+    short_backward: str = "◀"
 
-    forward_callback: str = f"forward_control_callback"
-    backward_callback: str = f"backward_control_callback"
-    close_callback: str = f"close_control_callback"
-    plus_callback: str = f"plus_callback"
-    minus_callback: str = f"minus_callback"
+    forward_callback: str = "forward_control_callback"
+    backward_callback: str = "backward_control_callback"
+    next_page_callback: str = "next_page_callback"
+    previous_page_callback: str = "previous_page_callback"
+    close_callback: str = "close_control_callback"
+    plus_callback: str = "plus_callback"
+    minus_callback: str = "minus_callback"
 
     @classmethod
     def pages_keyboard(
@@ -159,7 +161,7 @@ class Controls:
             keyboard.append(
                 {
                     "text": cls.short_backward,
-                    "callback_data": cls.backward_callback
+                    "callback_data": cls.previous_page_callback
                 }
             )
         if pages > 0:
@@ -173,7 +175,7 @@ class Controls:
             keyboard.append(
                 {
                     "text": cls.short_forward,
-                    "callback_data": cls.forward_callback
+                    "callback_data": cls.next_page_callback
                 }
             )
 
