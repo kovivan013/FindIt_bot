@@ -60,10 +60,10 @@ async def create_user(
             core.create_sa_session
         )
 ) -> Union[DataStructure]:
-    # await OAuth2._check_token(
-    #     request,
-    #     session
-    # )
+    await OAuth2._check_token(
+        request,
+        session
+    )
     result = DataStructure()
 
     data_scheme = BaseUser().model_validate(

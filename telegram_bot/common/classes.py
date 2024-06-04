@@ -42,6 +42,7 @@ class Symbols:
     UKRAINIAN_ALPHABET: str = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюяАБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ"
     ENGLISH_ALPHABET: str = ascii_letters
     DIGITS: str = digits
+    MAIN_SYMBOLS: str = UKRAINIAN_ALPHABET + ENGLISH_ALPHABET + DIGITS + " "
 
 
 class FSMActions:

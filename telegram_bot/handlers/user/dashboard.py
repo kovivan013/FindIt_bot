@@ -12,7 +12,10 @@ from aiogram.types import (
     ContentTypes,
     ForceReply
 )
-from . import signup
+from . import (
+    signup,
+    add_announcements
+)
 
 from config import dp, bot
 from common import dtos
@@ -305,6 +308,13 @@ def register(
             equals=DashboardMenu.backward_callback
         ),
         state=GetAnnouncementStates.preview
+    )
+    dp.register_callback_query_handler(
+        add_announcements.announcement_mode,
+        Text(
+            equals=DashboardMenu.add_announcement_callback
+        ),
+        state=DashboardStates.query_result
     )
     dp.register_callback_query_handler(
         signup.back_to_start_menu,

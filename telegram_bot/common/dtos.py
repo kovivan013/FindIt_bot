@@ -26,6 +26,7 @@ class UpdateUserDTO(BaseModel):
 class AddAnnouncementDTO(AnnouncementDetails):
 
     mode: int = 0
+    photo_id: str = ""
 
 
 class GetUserAnnouncementsDTO(BaseModel):

@@ -71,13 +71,13 @@ async def check_username(
 ) -> None:
     await event.delete()
     storage = FSMStorageProxy(state)
+    text = utils.TextFilter(event.text)
 
-    if len(event.text) <= 50:
-        for i in event.text:
-            if i not in Symbols.UKRAINIAN_ALPHABET + Symbols.ENGLISH_ALPHABET + Symbols.DIGITS + " ":
-                return await MessageProxy(state).edit_caption(
-                    caption="У нікнеймі можна використовувати лише літери українського та англійського алфавітів"
-                )
+    if text._max_lenght(50):
+        if text._not_in(Symbols.MAIN_SYMBOLS):
+            return await MessageProxy(state).edit_caption(
+                caption="У нікнеймі можна використовувати лише літери українського та англійського алфавітів"
+            )
         else:
             await storage.update_data(
                 FSMActions.CREATE_USER,
@@ -112,13 +112,13 @@ async def check_description(
 ) -> None:
     await event.delete()
     storage = FSMStorageProxy(state)
+    text = utils.TextFilter(event.text)
 
-    if len(event.text) <= 2048:
-        for i in event.text:
-            if i not in Symbols.UKRAINIAN_ALPHABET + Symbols.ENGLISH_ALPHABET + Symbols.DIGITS + " ":
-                return await MessageProxy(state).edit_caption(
-                    caption="В описі можна використовувати лише літери українського та англійського алфавітів"
-                )
+    if text._max_lenght(2048):
+        if text._not_in(Symbols.MAIN_SYMBOLS):
+            return await MessageProxy(state).edit_caption(
+                caption="В описі можна використовувати лише літери українського та англійського алфавітів"
+            )
         else:
             await storage.update_data(
                 FSMActions.CREATE_USER,
@@ -152,9 +152,11 @@ async def check_phone_number(
 ) -> None:
     await event.delete()
     storage = FSMStorageProxy(state)
-    print(event.contact.phone_number)
+    phone_number = utils.TextFilter(
+        event.contact.phone_number
+    )
 
-    if len(phone_number := event.contact.phone_number) == 12:
+    if phone_number._lenght_equals(12):
         await storage.update_data(
             FSMActions.CREATE_USER,
             phone_number=phone_number
@@ -172,7 +174,7 @@ async def create_account(
         state: FSMContext
 ) -> None:
     await MessageProxy(state).edit_caption(
-        caption="Реєструємо Вас..."
+        caption="💨 Реєструємо Вас..."
     )
     response = await UserAPI.create_user(
         state.user,

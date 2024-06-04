@@ -22,3 +22,17 @@ class GetAnnouncementStates(StatesGroup):
 
     preview = State()
 
+
+class AddAnnouncementStates(StatesGroup):
+
+    select_mode = State()
+    input_title = State()
+    input_description = State()
+    input_photo = State()
+    input_location = State()
+    input_date = State()
+    input_tags = State()
+    secret_question = State()
+    encrypted_answer = State()
+
+

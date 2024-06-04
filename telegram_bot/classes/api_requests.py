@@ -544,7 +544,7 @@ class OpenStreetMapAPI(API):
             cls,
             latitude: float,
             longitude: float
-    ) -> Union[DataStructure]:
+    ) -> dict:
         url: str = "https://nominatim.openstreetmap.org/reverse"
         params: dict = {
             "format": "json",
@@ -564,7 +564,7 @@ class OpenStreetMapAPI(API):
     async def get_location(
             cls,
             name: str
-    ) -> Union[DataStructure]:
+    ) -> dict:
         url: str = "https://nominatim.openstreetmap.org/search.php"
         params: dict = {
             "format": "json",

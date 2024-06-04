@@ -308,6 +308,9 @@ class Filters(
         return keyboard
 
 
+
+
+
 class ListMenu(YesOrNo, Controls):
     """
     Вызывать если нужно ввести список элементов, например список тегов
@@ -567,8 +570,178 @@ class DashboardMenu(
         return keyboard
 
 
+class CalendarMenu:
+
+    short_days: list = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "НД"]
+    days: list = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота", "Неділя"]
+    months = {
+        1: {"month": "Січень", "days": 31, "case": "Січня"},
+        2: {"month": "Лютий", "days": 28, "case": "Лютого"},
+        3: {"month": "Березень", "days": 31, "case": "Березня"},
+        4: {"month": "Квітень", "days": 30, "case": "Квітня"},
+        5: {"month": "Травень", "days": 31, "case": "Травня"},
+        6: {"month": "Червень", "days": 30, "case": "Червня"},
+        7: {"month": "Липень", "days": 31, "case": "Липня"},
+        8: {"month": "Серпень", "days": 31, "case": "Серпня"},
+        9: {"month": "Вересень", "days": 30, "case": "Вересня"},
+        10: {"month": "Жовтень", "days": 31, "case": "Жовтня"},
+        11: {"month": "Листопад", "days": 30, "case": "Листопада"},
+        12: {"month": "Грудень", "days": 31, "case": "Грудня"}
+    }
+    now: str = f"🗓️ Зараз"
+
+    date_callback: str = f"date_callback"
 
 
+class AddAnnouncementMenu(
+    DashboardMenu,
+    YesOrNo
+):
+
+    @classmethod
+    def keyboard(cls) -> Union[InlineKeyboardMarkup]:
+        keyboard = default_inline_keyboard()
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.lost,
+                callback_data=cls.lost_callback
+            ),
+            InlineKeyboardButton(
+                text=cls.found,
+                callback_data=cls.found_callback
+            )
+        )
+
+        return keyboard
+
+    @classmethod
+    def calendar_keyboard(cls) -> Union[InlineKeyboardMarkup]:
+        pass
+
+class CalendarMenu(Controls, YesOrNo):
+
+    @classmethod
+    def keyboard(
+            cls,
+            with_cancel: bool = False,
+            with_save: bool = False,
+            with_forward: bool = True,
+            with_next: bool = False,
+            year: int = None,
+            month: int = None,
+            day: int = None
+    ) -> Union[InlineKeyboardMarkup]:
+        keyboard = default_inline_keyboard(
+            row_width=7
+        )
+
+        args = all(
+            [year, month, day]
+        )
+        now = datetime.datetime.now()
+
+        if args:
+            today = datetime.datetime(
+                year, month, day, now.hour, now.minute
+            )
+        else:
+            today = datetime.datetime.now()
+
+        firts_month_day = datetime.datetime(
+            today.year, today.month, 1
+        )
+        weekday = firts_month_day.weekday()
+        days_to_end = 7 - weekday
+        days_in_month = cls.months[today.month]["days"]
+
+        day = 1
+
+        if today.year % 4 == 0 and today.month == 2:
+            days_in_month = 29
+
+        r = 6
+
+        if days_in_month - days_to_end - 28 > 0:
+            r += 1
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f"{cls.months[today.month]['month']}, {today.year}",
+                callback_data="None"
+            )
+        )
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.short_backward,
+                callback_data=cls.backward_callback
+            )
+        )
+
+        if with_forward:
+            keyboard.insert(
+                InlineKeyboardButton(
+                    text=cls.short_forward,
+                    callback_data=cls.forward_callback
+                )
+            )
+
+        days = []
+        for short_day in cls.short_days:
+            days.append(
+                InlineKeyboardButton(
+                    text=short_day,
+                    callback_data="None"
+                )
+            )
+
+        keyboard.row(
+            *days
+        )
+
+        for i in range(1, r):
+            for j in range(1, 8):
+                if (day > days_in_month or (i < 2 and j < weekday + 1)) or (
+                        day > now.day and today.month == now.month and today.year == now.year
+                ):
+                    keyboard.insert(
+                        InlineKeyboardButton(
+                            text=" ",
+                            callback_data="None"
+                        )
+                    )
+                    continue
+
+                callback = int(
+                    datetime.datetime(
+                        today.year, today.month, day, today.hour, today.minute
+                    ).timestamp()
+                )
+                keyboard.insert(
+                    InlineKeyboardButton(
+                        text=f"{day}",
+                        callback_data=f"{callback}{cls.date_callback}"
+                    )
+                )
+
+                day += 1
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.now,
+                callback_data=f"now{cls.date_callback}"
+            )
+        )
+
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls.cancel,
+                callback_data=cls.cancel_callback
+            )
+        )
+
+        return keyboard
 
 # class RegisterMenu(MainMenu, YesOrNo):
 #     start: str = f"🌟 Почати!"
